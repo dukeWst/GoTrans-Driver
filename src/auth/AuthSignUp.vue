@@ -91,7 +91,9 @@ const handleRegister = async () => {
         </RouterLink>
 
         <div class="mb-12">
-          <h1 class="text-4xl font-bold text-gray-900 leading-tight">Tạo tài khoản GoTrans</h1>
+          <h1 class="text-4xl font-bold text-gray-900 leading-tight">
+            Tạo tài khoản GoTransDriver
+          </h1>
           <p class="text-gray-500 mt-3">Đăng ký bằng Email để bắt đầu</p>
         </div>
 
@@ -171,7 +173,7 @@ const handleRegister = async () => {
                 :class="{ 'text-red-500': errors.agreed }"
               >
                 Tôi đồng ý với
-                <a class="text-emerald-600 hover:underline"> điều khoản sử dụng </a>
+                <a class="text-emerald-600 hover:underline font-bold"> điều khoản sử dụng </a>
               </label>
             </div>
             <p v-if="errors.agreed" class="text-red-500 text-xs mt-1">{{ errors.agreed }}</p>
@@ -212,7 +214,7 @@ const handleRegister = async () => {
       <div class="relative z-10 text-center px-12">
         <h2 class="text-4xl font-bold text-white leading-snug">
           Bắt đầu hành trình <br />
-          <span class="text-white/90">cùng GoTrans</span>
+          <span class="text-white/90">cùng GoTransDriver</span>
         </h2>
         <p class="text-white/80 mt-4 max-w-md mx-auto">
           Chuyển nhà, giao hàng và vận chuyển nhanh chóng – minh bạch – an toàn

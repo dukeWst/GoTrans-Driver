@@ -1,9 +1,9 @@
 <template>
   <section class="py-20 px-6 lg:px-24 bg-white relative">
     <div class="text-center max-w-2xl mx-auto mb-16">
-      <h2 class="text-3xl font-bold text-slate-900">Tại sao chọn GoTrans?</h2>
+      <h2 class="text-3xl font-bold text-slate-900">Tại sao chọn GoTrans Driver?</h2>
       <p class="text-slate-500 mt-3">
-        Chúng tôi mang đến giải pháp vận chuyển toàn diện với cam kết chất lượng hàng đầu.
+        Nền tảng công nghệ giúp bạn tối ưu thu nhập và làm chủ công việc.
       </p>
     </div>
 
@@ -27,23 +27,23 @@
 </template>
 
 <script setup lang="ts">
-import { ShieldCheck, Truck, MapPin } from 'lucide-vue-next'
+import { Wallet, Clock, Smartphone } from 'lucide-vue-next'
 
 const features = [
   {
-    icon: ShieldCheck,
-    title: 'An toàn tuyệt đối',
-    desc: 'Đội ngũ chuyên nghiệp, bọc lót kỹ càng, đảm bảo an toàn 100% cho tài sản của bạn.',
+    icon: Wallet,
+    title: 'Thu nhập hấp dẫn',
+    desc: 'Không giới hạn thu nhập. Nhận tiền ngay sau mỗi chuyến đi và hưởng các chính sách thưởng tuần, thưởng tháng.',
   },
   {
-    icon: Truck,
-    title: 'Vận chuyển thần tốc',
-    desc: 'Hệ thống điều xe thông minh giúp tối ưu lộ trình, tiết kiệm thời gian và chi phí.',
+    icon: Clock,
+    title: 'Thời gian linh hoạt',
+    desc: 'Bạn là chủ của chính mình. Bật ứng dụng khi rảnh, tắt khi bận. Không gò bó thời gian làm việc.',
   },
   {
-    icon: MapPin,
-    title: 'Chi phí minh bạch',
-    desc: 'Giá cước niêm yết rõ ràng theo Google Maps. Cam kết không phát sinh phụ phí.',
+    icon: Smartphone,
+    title: 'Công nghệ thông minh',
+    desc: 'Ứng dụng hỗ trợ tìm đường tối ưu, tự động gán đơn gần bạn nhất để tiết kiệm xăng và thời gian.',
   },
 ]
 </script>

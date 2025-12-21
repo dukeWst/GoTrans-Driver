@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onActivated, onUnmounted } from 'vue' // Thêm onActivated
+import { ref, onMounted, onActivated, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/supabase'
 import { Package, Truck, ChevronRight, Clock } from 'lucide-vue-next'
@@ -174,7 +174,9 @@ onUnmounted(() => {
           <h2 class="text-2xl font-bold text-slate-900 dark:text-white">
             Xin chào, {{ user?.user_metadata?.full_name || 'Tài xế' }} 👋
           </h2>
-          <p class="text-slate-500 dark:text-slate-400 mt-1">Chào mừng quay trở lại với GoTrans.</p>
+          <p class="text-slate-500 dark:text-slate-400 mt-1">
+            Chào mừng quay trở lại với GoTransDriver.
+          </p>
         </div>
       </header>
 
@@ -297,11 +299,6 @@ onUnmounted(() => {
             <p class="text-slate-500 dark:text-slate-400 mb-6 max-w-xs mx-auto">
               Hiện tại chưa có yêu cầu vận chuyển nào gần bạn. Hãy giữ ứng dụng mở để nhận đơn.
             </p>
-            <button
-              class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shadow-md shadow-emerald-300 animate-pulse"
-            >
-              Đang tìm kiếm...
-            </button>
           </div>
 
           <!-- Recent Activity -->

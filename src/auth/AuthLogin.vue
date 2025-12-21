@@ -102,7 +102,7 @@ const login = async () => {
         </RouterLink>
 
         <div class="mb-12">
-          <h1 class="text-4xl font-bold text-gray-900">Đăng nhập GoTrans</h1>
+          <h1 class="text-4xl font-bold text-gray-900">Đăng nhập GoTransDriver</h1>
           <p class="text-gray-500 mt-3">Chào mừng quay lại</p>
         </div>
 
@@ -187,7 +187,9 @@ const login = async () => {
 
         <p class="mt-10 text-sm text-gray-500">
           Chưa có tài khoản?
-          <RouterLink to="/register" class="text-emerald-600 hover:underline"> Đăng ký </RouterLink>
+          <RouterLink to="/register" class="text-emerald-600 hover:underline font-bold">
+            Đăng ký ngay
+          </RouterLink>
         </p>
       </div>
     </div>

@@ -2,13 +2,14 @@
   <aside
     class="w-64 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 hidden md:flex flex-col fixed h-full z-10 overflow-y-auto transition-colors duration-300"
   >
-    <div class="p-8">
+    <div class="p-6">
       <RouterLink to="/" class="text-2xl font-extrabold flex items-center gap-2">
         <img :src="Logo_" alt="Logo" class="w-16 h-8" />
         <div>
           <span class="text-emerald-600">Go</span
-          ><span class="text-slate-800 dark:text-white">Trans</span>
+          ><span class="text-slate-800 dark:text-white">Trans </span>
         </div>
+        <span class="text-slate-800 text-xs dark:text-white">Driver</span>
       </RouterLink>
     </div>
 

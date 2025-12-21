@@ -6,7 +6,7 @@
           <img :src="Logo_" alt="Logo" class="w-16 h-8" />
         </div>
         <div>
-          <div class="font-extrabold text-lg text-slate-800 leading-none">GoTrans</div>
+          <div class="font-extrabold text-lg text-slate-800 leading-none">GoTransDriver</div>
           <div class="text-[10px] uppercase tracking-wider text-slate-500 font-medium mt-1">
             Vận chuyển thông minh
           </div>

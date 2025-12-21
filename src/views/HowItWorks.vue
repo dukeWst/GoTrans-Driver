@@ -10,9 +10,9 @@
     ></div>
 
     <div class="relative z-10 container mx-auto px-6 text-center">
-      <h2 class="text-3xl lg:text-4xl font-bold mb-4">Quy trình đơn giản</h2>
+      <h2 class="text-3xl lg:text-4xl font-bold mb-4">Trở thành đối tác dễ dàng</h2>
       <p class="text-emerald-100 mb-16 max-w-xl mx-auto">
-        Chỉ với 3 bước đơn giản để bắt đầu hành trình chuyển nhà nhẹ nhàng cùng GoTrans.
+        Chỉ với 3 bước đơn giản để bắt đầu kiếm tiền cùng GoTrans.
       </p>
 
       <div class="relative max-w-5xl mx-auto">
@@ -44,38 +44,37 @@
         </div>
       </div>
 
-      <RouterLink to="/contact">
-        <div class="mt-16">
-        <button
-          class="px-8 py-3 bg-white text-emerald-600 rounded-xl font-bold hover:bg-emerald-50 transition shadow-lg"
+      <div class="mt-16">
+        <RouterLink
+          to="/register"
+          class="inline-block px-8 py-4 bg-white text-emerald-600 rounded-xl font-bold hover:bg-emerald-50 transition shadow-lg transform hover:-translate-y-1"
         >
-          Đăng ký tư vấn ngay
-        </button>
-        </div>
-      </RouterLink>
+          Đăng ký làm tài xế ngay
+        </RouterLink>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { PhoneCall, Calculator, Truck } from 'lucide-vue-next'
-import type { RouterLink } from 'vue-router'
+import { FileText, Award, Truck } from 'lucide-vue-next'
+import { RouterLink } from 'vue-router'
 
 const steps = [
   {
-    icon: PhoneCall,
-    title: 'Liên hệ & Khảo sát',
-    desc: 'Gọi hotline hoặc điền form. Nhân viên sẽ tư vấn và báo giá sơ bộ ngay lập tức.',
+    icon: FileText,
+    title: 'Đăng ký hồ sơ',
+    desc: 'Điền thông tin trực tuyến và tải lên các giấy tờ cần thiết (CMND/CCCD, Bằng lái).',
   },
   {
-    icon: Calculator,
-    title: 'Chốt phương án',
-    desc: 'Thống nhất chi phí, ký hợp đồng điện tử và lên lịch vận chuyển.',
+    icon: Award,
+    title: 'Xét duyệt & Đào tạo',
+    desc: 'GoTrans sẽ xác thực hồ sơ và hướng dẫn bạn cách sử dụng ứng dụng hiệu quả.',
   },
   {
     icon: Truck,
-    title: 'Tiến hành vận chuyển',
-    desc: 'Đội ngũ GoTrans thực hiện đóng gói, tháo lắp và vận chuyển đến nhà mới.',
+    title: 'Nhận đơn & Kiếm tiền',
+    desc: 'Kích hoạt tài khoản, bật ứng dụng lên và bắt đầu nhận chuyến xe đầu tiên.',
   },
 ]
 </script>

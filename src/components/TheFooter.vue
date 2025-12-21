@@ -4,7 +4,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
         <div class="space-y-4">
           <div class="flex items-center gap-2">
-            <span class="text-xl font-bold tracking-tight">GoTrans</span>
+            <span class="text-xl font-bold tracking-tight">GoTransDriver</span>
           </div>
           <p class="text-slate-400 text-sm leading-relaxed">
             Nền tảng vận chuyển thông minh, kết nối khách hàng và tài xế với chi phí tối ưu nhất.

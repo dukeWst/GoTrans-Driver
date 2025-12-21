@@ -977,8 +977,8 @@ onUnmounted(() => {
           </div>
           <h3 class="text-2xl font-bold text-slate-900 mb-2">Đặt đơn hàng thành công!</h3>
           <p class="text-slate-500 mb-8 max-w-md">
-            Cảm ơn bạn đã sử dụng dịch vụ GoTrans. Tài xế sẽ liên hệ với bạn trong giây lát. Mã đơn
-            hàng:
+            Cảm ơn bạn đã sử dụng dịch vụ GoTransDriver. Tài xế sẽ liên hệ với bạn trong giây lát.
+            Mã đơn hàng:
             <span class="font-mono font-bold text-slate-800"
               >#GD{{ Math.floor(Math.random() * 10000) }}</span
             >
