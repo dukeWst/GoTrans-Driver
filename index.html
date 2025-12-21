@@ -2,12 +2,72 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vue-tailwind-app</title>
+    <link rel="icon" href="/LogoFav.png" />
+    <title>GoTrans</title>
+
+    <style>
+      html {
+        scrollbar-gutter: stable;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        /* QUAN TRỌNG: Đặt nền trắng ngay lập tức */
+        background-color: #ffffff;
+        height: 100vh;
+        overflow: hidden; /* Chặn cuộn khi đang load */
+      }
+
+      #app-loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #ffffff; /* Nền trắng phủ kín */
+        z-index: 99999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* Hiệu ứng mờ dần trong 0.5 giây */
+        transition: opacity 0.5s ease-out;
+      }
+
+      /* --- 3. VÒNG XOAY XANH (Spinner) --- */
+      .simple-spinner {
+        width: 50px;
+        height: 50px;
+        /* Viền mờ màu xám nhạt */
+        border: 5px solid #f3f3f3;
+        /* Viền chính màu Xanh Dương */
+        border-top: 5px solid #24945a;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      button {
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
+    <div id="app-loading-overlay">
+      <div class="simple-spinner"></div>
+    </div>
+
     <div id="app"></div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
