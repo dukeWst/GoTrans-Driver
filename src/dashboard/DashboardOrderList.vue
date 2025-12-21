@@ -303,13 +303,17 @@ const closeDetails = () => {
 </script>
 
 <template>
-  <main class="flex-1 md:ml-64 p-4 lg:p-10 bg-slate-50 min-h-screen relative">
+  <main
+    class="flex-1 md:ml-64 p-4 lg:p-10 bg-slate-50 dark:bg-slate-900 min-h-screen relative transition-colors duration-300"
+  >
     <header
       class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4"
     >
       <div>
-        <h2 class="text-2xl font-bold text-slate-900">Danh sách đơn hàng</h2>
-        <p class="text-slate-500 mt-1">Quản lý các đơn hàng vận chuyển của bạn.</p>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Danh sách đơn hàng</h2>
+        <p class="text-slate-500 dark:text-slate-400 mt-1">
+          Quản lý các đơn hàng vận chuyển của bạn.
+        </p>
       </div>
       <div class="relative w-full md:w-auto">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -317,7 +321,7 @@ const closeDetails = () => {
           v-model="searchQuery"
           type="text"
           placeholder="Tìm mã đơn, tên, địa chỉ..."
-          class="w-full md:w-64 pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white shadow-sm"
+          class="w-full md:w-64 pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white dark:bg-slate-800 dark:text-white shadow-sm transition-colors"
         />
       </div>
     </header>
@@ -336,8 +340,8 @@ const closeDetails = () => {
           class="px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-200 border"
           :class="
             activeFilter === tab.id
-              ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-200'
-              : 'bg-white text-slate-600 border-gray-200 hover:bg-gray-50'
+              ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-200 dark:shadow-none'
+              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
           "
         >
           {{ tab.label }}
@@ -352,13 +356,13 @@ const closeDetails = () => {
 
     <div
       v-else-if="filteredOrders.length === 0"
-      class="flex flex-col items-center justify-center py-20 text-center bg-white rounded-3xl border border-dashed border-gray-300"
+      class="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-slate-800 rounded-3xl border border-dashed border-gray-300 dark:border-slate-700 transition-colors"
     >
-      <div class="bg-gray-50 p-4 rounded-full mb-4">
+      <div class="bg-gray-50 dark:bg-slate-700 p-4 rounded-full mb-4 transition-colors">
         <Package class="w-10 h-10 text-gray-400" />
       </div>
-      <h3 class="text-lg font-bold text-slate-900">Không tìm thấy đơn hàng</h3>
-      <p class="text-slate-500 max-w-xs mx-auto mt-2">
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white">Không tìm thấy đơn hàng</h3>
+      <p class="text-slate-500 dark:text-slate-400 max-w-xs mx-auto mt-2">
         Bạn chưa có đơn hàng nào hoặc không tìm thấy kết quả phù hợp.
       </p>
     </div>
@@ -368,7 +372,7 @@ const closeDetails = () => {
         v-for="item in filteredOrders"
         :key="item.id"
         @click="openDetails(item)"
-        class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow group cursor-pointer"
+        class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm dark:shadow-none hover:shadow-md dark:hover:border-slate-600 transition-all group cursor-pointer"
       >
         <div class="flex justify-between items-start mb-4">
           <div class="flex items-center gap-3">
@@ -385,7 +389,7 @@ const closeDetails = () => {
             </div>
             <div>
               <div class="flex items-center gap-2">
-                <h4 class="font-bold text-slate-800 text-sm md:text-base">
+                <h4 class="font-bold text-slate-800 dark:text-white text-sm md:text-base">
                   {{ item.serviceType === 'delivery' ? 'Giao hàng nhanh' : 'Chuyển nhà' }}
                 </h4>
                 <span
@@ -406,23 +410,31 @@ const closeDetails = () => {
           </span>
         </div>
 
-        <div class="relative pl-4 border-l-2 border-gray-100 space-y-4 ml-2 mb-4">
+        <div
+          class="relative pl-4 border-l-2 border-gray-100 dark:border-slate-700 space-y-4 ml-2 mb-4"
+        >
           <div class="relative">
             <div
-              class="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-white border-2 border-emerald-500"
+              class="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-white dark:bg-slate-600 border-2 border-emerald-500"
             ></div>
-            <p class="text-xs text-slate-500 mb-0.5">Điểm đi</p>
-            <p class="text-sm font-medium text-slate-800 line-clamp-1">{{ item.from }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Điểm đi</p>
+            <p class="text-sm font-medium text-slate-800 dark:text-slate-200 line-clamp-1">
+              {{ item.from }}
+            </p>
           </div>
           <div class="relative">
             <div class="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-emerald-500"></div>
-            <p class="text-xs text-slate-500 mb-0.5">Điểm đến</p>
-            <p class="text-sm font-medium text-slate-800 line-clamp-1">{{ item.to }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Điểm đến</p>
+            <p class="text-sm font-medium text-slate-800 dark:text-slate-200 line-clamp-1">
+              {{ item.to }}
+            </p>
           </div>
         </div>
 
-        <div class="flex items-center justify-between pt-4 mt-2 border-t border-gray-100">
-          <div class="flex items-center gap-4 text-xs text-slate-500">
+        <div
+          class="flex items-center justify-between pt-4 mt-2 border-t border-gray-100 dark:border-slate-700"
+        >
+          <div class="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
             <div class="flex items-center gap-1">
               <Calendar class="w-3.5 h-3.5" /> {{ item.date }}
             </div>

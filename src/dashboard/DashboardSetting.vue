@@ -103,6 +103,14 @@ watch(
   },
 )
 
+// Watch theme changes for immediate effect
+watch(
+  () => userSettings.value.theme,
+  (newTheme) => {
+    applyTheme(newTheme)
+  },
+)
+
 const fetchUserSettings = async () => {
   try {
     loading.value = true
@@ -387,7 +395,7 @@ const handleLogout = async () => {
                   <button
                     type="submit"
                     :disabled="savingPassword"
-                    class="bg-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-700 transition shadow-lg shadow-orange-200 flex items-center gap-2 disabled:opacity-50"
+                    class="bg-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-700 transition shadow-lg shadow-orange-200 dark:shadow-none flex items-center gap-2 disabled:opacity-50"
                   >
                     <Save v-if="!savingPassword" class="w-4 h-4" />
                     {{ savingPassword ? 'Đang lưu...' : 'Đổi mật khẩu' }}
@@ -470,7 +478,7 @@ const handleLogout = async () => {
                 <button
                   type="submit"
                   :disabled="savingSettings"
-                  class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 flex items-center gap-2 disabled:opacity-50"
+                  class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 dark:shadow-none flex items-center gap-2 disabled:opacity-50"
                 >
                   <Save v-if="!savingSettings" class="w-4 h-4" />
                   {{ savingSettings ? 'Đang lưu...' : 'Lưu cài đặt' }}
@@ -506,7 +514,7 @@ const handleLogout = async () => {
                   <button
                     type="submit"
                     :disabled="savingSettings"
-                    class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 flex items-center gap-2 disabled:opacity-50"
+                    class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 dark:shadow-none flex items-center gap-2 disabled:opacity-50"
                   >
                     <Save v-if="!savingSettings" class="w-4 h-4" />
                     {{ savingSettings ? 'Đang lưu...' : 'Lưu cài đặt' }}
@@ -527,7 +535,7 @@ const handleLogout = async () => {
                 Thao tác này sẽ xóa vĩnh viễn tài khoản của bạn và không thể hoàn tác.
               </p>
               <button
-                class="bg-red-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-red-700 transition shadow-md shadow-red-200"
+                class="bg-red-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-red-700 transition shadow-md shadow-red-200 dark:shadow-none"
               >
                 Xóa vĩnh viễn tài khoản
               </button>

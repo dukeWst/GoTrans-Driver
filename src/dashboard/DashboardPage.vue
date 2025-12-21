@@ -12,7 +12,9 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 flex font-sans text-slate-800">
+  <div
+    class="min-h-screen bg-gray-50 dark:bg-slate-900 flex font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300"
+  >
     <DashboardSidebar @logout="handleLogout" />
 
     <RouterView v-slot="{ Component }">

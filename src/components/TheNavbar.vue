@@ -3,7 +3,7 @@
     <div class="container mx-auto px-6 py-4 flex items-center justify-between">
       <div class="flex items-center gap-3 cursor-pointer" @click="$router.push('/')">
         <div class="w-16 h-10 rounded-xl text-white flex items-center justify-center">
-          <img :src="logo" alt="Logo" class="w-16 h-8" />
+          <img :src="Logo_" alt="Logo" class="w-16 h-8" />
         </div>
         <div>
           <div class="font-extrabold text-lg text-slate-800 leading-none">GoTrans</div>
@@ -179,7 +179,7 @@ import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ChevronDown } from 'lucide-vue-next'
 import { supabase } from '@/supabase'
-import logo from '../assets/logo.png'
+import Logo_ from '../assets/Logo_.png'
 
 const router = useRouter()
 const serviceOpen = ref(false)

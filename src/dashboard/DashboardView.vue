@@ -165,32 +165,37 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 flex font-sans text-slate-800 w-full">
+  <div
+    class="min-h-screen bg-gray-50 dark:bg-slate-900 flex font-sans text-slate-800 dark:text-slate-200 w-full transition-colors duration-300"
+  >
     <main class="flex-1 md:ml-64 p-6 lg:p-10 w-full transition-all duration-300">
       <header class="flex flex-col md:flex-row justify-between md:items-center mb-10 gap-4">
         <div>
-          <h2 class="text-2xl font-bold text-slate-900">
+          <h2 class="text-2xl font-bold text-slate-900 dark:text-white">
             Xin chào, {{ user?.user_metadata?.full_name || 'Tài xế' }} 👋
           </h2>
-          <p class="text-slate-500 mt-1">Chào mừng quay trở lại với GoTrans.</p>
+          <p class="text-slate-500 dark:text-slate-400 mt-1">Chào mừng quay trở lại với GoTrans.</p>
         </div>
       </header>
 
       <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div class="xl:col-span-2 space-y-8">
+          <!-- Loading State -->
           <div
             v-if="loading"
-            class="h-64 bg-white rounded-2xl animate-pulse flex items-center justify-center"
+            class="h-64 bg-white dark:bg-slate-800 rounded-2xl animate-pulse flex items-center justify-center border border-gray-100 dark:border-slate-700"
           >
             <div
               class="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"
             ></div>
           </div>
 
+          <!-- Active Order Card -->
           <div
             v-else-if="activeOrder"
-            class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden group transition-all hover:shadow-2xl"
+            class="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden group transition-all hover:shadow-2xl"
           >
+            <!-- ... existing content for active order ... -->
             <div
               class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl group-hover:bg-emerald-500/30 transition duration-700"
             ></div>
@@ -280,27 +285,31 @@ onUnmounted(() => {
             </div>
           </div>
 
+          <!-- Empty State -->
           <div
             v-else
-            class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center flex flex-col items-center justify-center h-64 animate-fade-in"
+            class="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-slate-700 text-center flex flex-col items-center justify-center h-64 animate-fade-in transition-colors"
           >
-            <div class="bg-gray-100 p-4 rounded-full mb-4">
-              <Truck class="w-8 h-8 text-gray-500" />
+            <div class="bg-gray-100 dark:bg-slate-700 p-4 rounded-full mb-4 transition-colors">
+              <Truck class="w-8 h-8 text-gray-500 dark:text-slate-400" />
             </div>
-            <h3 class="text-lg font-bold text-slate-900">Chưa có đơn hàng mới</h3>
-            <p class="text-slate-500 mb-6 max-w-xs mx-auto">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Chưa có đơn hàng mới</h3>
+            <p class="text-slate-500 dark:text-slate-400 mb-6 max-w-xs mx-auto">
               Hiện tại chưa có yêu cầu vận chuyển nào gần bạn. Hãy giữ ứng dụng mở để nhận đơn.
             </p>
             <button
-              class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 animate-pulse"
+              class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shadow-md shadow-emerald-300 animate-pulse"
             >
               Đang tìm kiếm...
             </button>
           </div>
 
-          <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <!-- Recent Activity -->
+          <div
+            class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 transition-colors"
+          >
             <div class="flex justify-between items-center mb-6">
-              <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Clock class="w-5 h-5 text-emerald-600" /> Lịch sử chuyến đi
               </h3>
               <RouterLink
@@ -316,7 +325,7 @@ onUnmounted(() => {
               <table class="w-full">
                 <thead>
                   <tr
-                    class="text-left text-xs text-slate-400 border-b border-gray-100 uppercase tracking-wider"
+                    class="text-left text-xs text-slate-400 border-b border-gray-100 dark:border-slate-700 uppercase tracking-wider"
                   >
                     <th class="pb-3 font-semibold pl-2">Mã đơn</th>
                     <th class="pb-3 font-semibold">Loại xe</th>
@@ -334,14 +343,14 @@ onUnmounted(() => {
                   <tr
                     v-for="order in recentOrders"
                     :key="order.id"
-                    class="group border-b border-gray-50 last:border-0 hover:bg-gray-50/80 transition-colors"
+                    class="group border-b border-gray-50 dark:border-slate-700/50 last:border-0 hover:bg-gray-50/80 dark:hover:bg-slate-700/50 transition-colors"
                   >
                     <td
-                      class="py-4 font-bold text-slate-800 pl-2 group-hover:text-emerald-600 transition"
+                      class="py-4 font-bold text-slate-800 dark:text-slate-200 pl-2 group-hover:text-emerald-600 transition"
                     >
                       #{{ order.id }}
                     </td>
-                    <td class="py-4 text-slate-600 font-medium">
+                    <td class="py-4 text-slate-600 dark:text-slate-400 font-medium">
                       <div class="flex items-center gap-2">
                         <component
                           :is="order.type === 'Giao hàng' ? Package : Truck"
@@ -350,7 +359,7 @@ onUnmounted(() => {
                         {{ order.type }}
                       </div>
                     </td>
-                    <td class="py-4 text-slate-500">{{ order.date }}</td>
+                    <td class="py-4 text-slate-500 dark:text-slate-400">{{ order.date }}</td>
                     <td class="py-4 font-bold text-emerald-600 text-right">
                       +{{ formatCurrency(order.price * 0.8) }}
                       <!-- Giả lập thu nhập 80% -->
@@ -371,60 +380,75 @@ onUnmounted(() => {
         </div>
 
         <div class="space-y-8">
-          <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 class="text-lg font-bold mb-4 text-slate-900">Thống kê tháng này</h3>
+          <!-- Stats Cards -->
+          <div
+            class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 transition-colors"
+          >
+            <h3 class="text-lg font-bold mb-4 text-slate-900 dark:text-white">
+              Thống kê tháng này
+            </h3>
             <div class="space-y-4">
               <div
-                class="flex justify-between items-center p-3 bg-emerald-50 rounded-xl border border-emerald-100"
+                class="flex justify-between items-center p-3 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/20"
               >
                 <div class="flex items-center gap-3">
                   <div
-                    class="w-10 h-10 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-700"
+                    class="w-10 h-10 rounded-full bg-emerald-200 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400"
                   >
                     <span class="font-bold">$</span>
                   </div>
                   <div>
-                    <p class="text-xs text-slate-500 font-medium">Tổng thu nhập</p>
-                    <p class="font-bold text-slate-800 text-lg">15.5 tr</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      Tổng thu nhập
+                    </p>
+                    <p class="font-bold text-slate-800 dark:text-white text-lg">15.5 tr</p>
                   </div>
                 </div>
               </div>
               <div
-                class="flex justify-between items-center p-3 bg-blue-50 rounded-xl border border-blue-100"
+                class="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20"
               >
                 <div class="flex items-center gap-3">
                   <div
-                    class="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center text-blue-700"
+                    class="w-10 h-10 rounded-full bg-blue-200 dark:bg-blue-900/30 flex items-center justify-center text-blue-700 dark:text-blue-400"
                   >
                     <Truck class="w-5 h-5" />
                   </div>
                   <div>
-                    <p class="text-xs text-slate-500 font-medium">Đã hoàn thành</p>
-                    <p class="font-bold text-slate-800 text-lg">{{ stats.total }} chuyến</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      Đã hoàn thành
+                    </p>
+                    <p class="font-bold text-slate-800 dark:text-white text-lg">
+                      {{ stats.total }} chuyến
+                    </p>
                   </div>
                 </div>
               </div>
               <div
-                class="flex justify-between items-center p-3 bg-orange-50 rounded-xl border border-orange-100"
+                class="flex justify-between items-center p-3 bg-orange-50 dark:bg-orange-900/10 rounded-xl border border-orange-100 dark:border-orange-900/20"
               >
                 <div class="flex items-center gap-3">
                   <div
-                    class="w-10 h-10 rounded-full bg-orange-200 flex items-center justify-center text-orange-700"
+                    class="w-10 h-10 rounded-full bg-orange-200 dark:bg-orange-900/30 flex items-center justify-center text-orange-700 dark:text-orange-400"
                   >
                     <span class="font-bold">★</span>
                   </div>
                   <div>
-                    <p class="text-xs text-slate-500 font-medium">Đánh giá chung</p>
-                    <p class="font-bold text-slate-800 text-lg">4.9/5.0</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      Đánh giá chung
+                    </p>
+                    <p class="font-bold text-slate-800 dark:text-white text-lg">4.9/5.0</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
+          <!-- Promo Card (Already dark mode compatible by design, mostly) -->
           <div
             class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"
           >
+            <!-- ... existing promo content ... -->
             <div class="relative z-10">
               <h3 class="font-bold text-lg mb-2">Thưởng thi đua tuần</h3>
               <p class="text-white/80 text-sm mb-4">
@@ -446,20 +470,20 @@ onUnmounted(() => {
 
           <div class="grid grid-cols-2 gap-4">
             <div
-              class="bg-white p-5 rounded-2xl border border-gray-100 flex flex-col justify-center items-center text-center hover:shadow-md transition"
+              class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-100 dark:border-slate-700 flex flex-col justify-center items-center text-center hover:shadow-md transition-colors"
             >
               <div class="text-slate-500 text-xs font-bold uppercase tracking-wide mb-1">
                 Tỉ lệ nhận
               </div>
-              <div class="text-2xl font-extrabold text-slate-800">98%</div>
+              <div class="text-2xl font-extrabold text-slate-800 dark:text-white">98%</div>
             </div>
             <div
-              class="bg-white p-5 rounded-2xl border border-gray-100 flex flex-col justify-center items-center text-center hover:shadow-md transition"
+              class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-100 dark:border-slate-700 flex flex-col justify-center items-center text-center hover:shadow-md transition-colors"
             >
               <div class="text-slate-500 text-xs font-bold uppercase tracking-wide mb-1">
                 Tỉ lệ hủy
               </div>
-              <div class="text-2xl font-extrabold text-slate-800">1%</div>
+              <div class="text-2xl font-extrabold text-slate-800 dark:text-white">1%</div>
             </div>
           </div>
         </div>

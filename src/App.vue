@@ -31,9 +31,7 @@ onMounted(async () => {
   if (user) {
     const meta = user.user_metadata || {}
 
-    if (meta.setting_language) {
-      locale.value = meta.setting_language
-    }
+    // Language setting removal was here
 
     if (meta.setting_theme) {
       if (meta.setting_theme === 'dark') {
