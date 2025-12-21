@@ -19,43 +19,7 @@
         <LayoutDashboard class="w-5 h-5" /> Tổng quan
       </RouterLink>
 
-      <div>
-        <button
-          @click="isServicesOpen = !isServicesOpen"
-          :class="[
-            'w-full flex items-center justify-between px-4 py-3 rounded-xl font-medium transition',
-            isServicesOpen
-              ? 'bg-gray-50 text-slate-900'
-              : 'text-slate-500 hover:bg-gray-50 hover:text-slate-900',
-          ]"
-        >
-          <div class="flex items-center gap-3"><Layers class="w-5 h-5" /> Dịch vụ</div>
-          <ChevronDown
-            class="w-4 h-4 transition-transform duration-200"
-            :class="{ 'rotate-180': isServicesOpen }"
-          />
-        </button>
-
-        <div v-show="isServicesOpen" class="mt-1 space-y-1 pl-4 pr-2">
-          <RouterLink
-            to="/dashboard/services/moving-house"
-            active-class="text-emerald-600 bg-emerald-50"
-            class="flex items-center gap-3 px-4 py-2 text-sm text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
-          >
-            <div class="w-1.5 h-1.5 rounded-full bg-current"></div>
-            Chuyển nhà
-          </RouterLink>
-
-          <RouterLink
-            to="/dashboard/services/delivery"
-            active-class="text-emerald-600 bg-emerald-50"
-            class="flex items-center gap-3 px-4 py-2 text-sm text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
-          >
-            <div class="w-1.5 h-1.5 rounded-full bg-current"></div>
-            Giao hàng
-          </RouterLink>
-        </div>
-      </div>
+      <!-- Drodown Services Removed for Driver -->
 
       <RouterLink
         to="/dashboard/order-list"
@@ -95,18 +59,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import logo from '../assets/logo.png'
-import {
-  LayoutDashboard,
-  LogOut,
-  Package,
-  Settings,
-  User,
-  ChevronDown,
-  Layers,
-} from 'lucide-vue-next'
-
-// --- 1. Logic cho Dropdown Dịch vụ ---
-const isServicesOpen = ref(false) // Mặc định đóng
+import { LayoutDashboard, LogOut, Package, Settings, User } from 'lucide-vue-next'
 
 // --- 2. Logic fix lỗi Logout ---
 // Định nghĩa sự kiện để gửi tín hiệu ra cha (DashboardPage)

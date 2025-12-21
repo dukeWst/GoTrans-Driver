@@ -2,7 +2,7 @@
 import { ref, onMounted, onActivated, onUnmounted } from 'vue' // Thêm onActivated
 import { useRouter } from 'vue-router'
 import { supabase } from '@/supabase'
-import { Package, Truck, ChevronRight, Clock, Plus } from 'lucide-vue-next'
+import { Package, Truck, ChevronRight, Clock } from 'lucide-vue-next'
 
 const router = useRouter()
 const user = ref<any>(null)
@@ -170,7 +170,7 @@ onUnmounted(() => {
       <header class="flex flex-col md:flex-row justify-between md:items-center mb-10 gap-4">
         <div>
           <h2 class="text-2xl font-bold text-slate-900">
-            Xin chào, {{ user?.user_metadata?.full_name || 'Khách hàng' }} 👋
+            Xin chào, {{ user?.user_metadata?.full_name || 'Tài xế' }} 👋
           </h2>
           <p class="text-slate-500 mt-1">Chào mừng quay trở lại với GoTrans.</p>
         </div>
@@ -206,7 +206,7 @@ onUnmounted(() => {
                   Đơn hàng #{{ activeOrder.id }}
                 </h3>
                 <p class="text-slate-400 text-sm mt-1 flex items-center gap-2">
-                  Tài xế: <span class="text-white font-medium">{{ activeOrder.driver }}</span> •
+                  Khách hàng: <span class="text-white font-medium">Nguyễn Văn Khách</span> •
                   {{ activeOrder.vehicle }}
                 </p>
               </div>
@@ -231,7 +231,7 @@ onUnmounted(() => {
                 </div>
                 <div>
                   <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-                    Điểm đi
+                    Điểm nhận hàng
                   </p>
                   <p class="font-medium text-sm text-slate-100 mt-0.5 line-clamp-1">
                     {{ activeOrder.from }}
@@ -245,7 +245,7 @@ onUnmounted(() => {
                 </div>
                 <div>
                   <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-                    Điểm đến
+                    Điểm trả hàng
                   </p>
                   <p class="font-medium text-sm text-slate-100 mt-0.5 line-clamp-1">
                     {{ activeOrder.to }}
@@ -256,7 +256,7 @@ onUnmounted(() => {
 
             <div class="mt-8 relative z-10">
               <div class="flex justify-between text-xs text-slate-400 mb-2 font-medium">
-                <span>Tiến độ vận chuyển</span>
+                <span>Tiến độ chuyến đi</span>
                 <span class="text-emerald-400">{{ activeOrder.progress }}%</span>
               </div>
               <div class="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden backdrop-blur-sm">
@@ -265,6 +265,18 @@ onUnmounted(() => {
                   :style="{ width: activeOrder.progress + '%' }"
                 ></div>
               </div>
+              <div class="mt-6 flex gap-3">
+                <button
+                  class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-lg font-bold text-sm transition shadow-lg shadow-emerald-900/50"
+                >
+                  Gọi khách
+                </button>
+                <button
+                  class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg font-bold text-sm transition"
+                >
+                  Chi tiết
+                </button>
+              </div>
             </div>
           </div>
 
@@ -272,33 +284,24 @@ onUnmounted(() => {
             v-else
             class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center flex flex-col items-center justify-center h-64 animate-fade-in"
           >
-            <div class="bg-emerald-50 p-4 rounded-full mb-4">
-              <Truck class="w-8 h-8 text-emerald-600" />
+            <div class="bg-gray-100 p-4 rounded-full mb-4">
+              <Truck class="w-8 h-8 text-gray-500" />
             </div>
-            <h3 class="text-lg font-bold text-slate-900">Bạn đang rảnh rỗi?</h3>
+            <h3 class="text-lg font-bold text-slate-900">Chưa có đơn hàng mới</h3>
             <p class="text-slate-500 mb-6 max-w-xs mx-auto">
-              Chưa có đơn hàng nào đang thực hiện. Hãy đặt dịch vụ ngay để trải nghiệm!
+              Hiện tại chưa có yêu cầu vận chuyển nào gần bạn. Hãy giữ ứng dụng mở để nhận đơn.
             </p>
-            <div class="flex gap-4 justify-center mb-4">
-              <RouterLink
-                to="/dashboard/services/moving-house"
-                class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shadow-lg shadow-emerald-200"
-              >
-                Chuyển nhà
-              </RouterLink>
-              <RouterLink
-                to="/dashboard/services/moving-house"
-                class="bg-sky-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-sky-700 transition shadow-lg shadow-emerald-200"
-              >
-                Giao hàng
-              </RouterLink>
-            </div>
+            <button
+              class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 animate-pulse"
+            >
+              Đang tìm kiếm...
+            </button>
           </div>
 
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <div class="flex justify-between items-center mb-6">
               <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Clock class="w-5 h-5 text-emerald-600" /> Lịch sử gần đây
+                <Clock class="w-5 h-5 text-emerald-600" /> Lịch sử chuyến đi
               </h3>
               <RouterLink
                 to="/dashboard/order-list"
@@ -316,16 +319,16 @@ onUnmounted(() => {
                     class="text-left text-xs text-slate-400 border-b border-gray-100 uppercase tracking-wider"
                   >
                     <th class="pb-3 font-semibold pl-2">Mã đơn</th>
-                    <th class="pb-3 font-semibold">Dịch vụ</th>
+                    <th class="pb-3 font-semibold">Loại xe</th>
                     <th class="pb-3 font-semibold">Ngày</th>
-                    <th class="pb-3 font-semibold text-right">Giá tiền</th>
+                    <th class="pb-3 font-semibold text-right">Thu nhập</th>
                     <th class="pb-3 font-semibold text-center">Trạng thái</th>
                   </tr>
                 </thead>
                 <tbody class="text-sm">
                   <tr v-if="recentOrders.length === 0">
                     <td colspan="5" class="py-8 text-center text-slate-400 italic">
-                      Chưa có đơn hàng nào
+                      Chưa có chuyến đi nào
                     </td>
                   </tr>
                   <tr
@@ -348,8 +351,9 @@ onUnmounted(() => {
                       </div>
                     </td>
                     <td class="py-4 text-slate-500">{{ order.date }}</td>
-                    <td class="py-4 font-bold text-slate-800 text-right">
-                      {{ formatCurrency(order.price) }}
+                    <td class="py-4 font-bold text-emerald-600 text-right">
+                      +{{ formatCurrency(order.price * 0.8) }}
+                      <!-- Giả lập thu nhập 80% -->
                     </td>
                     <td class="py-4 text-center">
                       <span
@@ -368,93 +372,95 @@ onUnmounted(() => {
 
         <div class="space-y-8">
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 class="text-lg font-bold mb-4 text-slate-900">Đặt dịch vụ mới</h3>
-            <div class="space-y-3">
-              <RouterLink to="/dashboard/services/moving-house" class="block">
-                <button
-                  class="w-full flex items-center p-3 rounded-xl border border-gray-200 hover:border-emerald-500 hover:bg-emerald-50 transition group bg-white"
-                >
+            <h3 class="text-lg font-bold mb-4 text-slate-900">Thống kê tháng này</h3>
+            <div class="space-y-4">
+              <div
+                class="flex justify-between items-center p-3 bg-emerald-50 rounded-xl border border-emerald-100"
+              >
+                <div class="flex items-center gap-3">
                   <div
-                    class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 group-hover:bg-emerald-200 transition shrink-0"
+                    class="w-10 h-10 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-700"
                   >
-                    <Truck class="w-6 h-6" />
+                    <span class="font-bold">$</span>
                   </div>
-                  <div class="ml-3 text-left">
-                    <p class="font-bold text-slate-900 text-sm">Chuyển nhà</p>
-                    <p class="text-xs text-slate-500 mt-0.5">Trọn gói, tháo lắp</p>
+                  <div>
+                    <p class="text-xs text-slate-500 font-medium">Tổng thu nhập</p>
+                    <p class="font-bold text-slate-800 text-lg">15.5 tr</p>
                   </div>
-                  <div
-                    class="ml-auto w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-emerald-200 transition"
-                  >
-                    <Plus class="w-4 h-4 text-gray-400 group-hover:text-emerald-700" />
-                  </div>
-                </button>
-              </RouterLink>
-
-              <RouterLink to="/dashboard/services/delivery" class="block">
-                <button
-                  class="w-full flex items-center p-3 rounded-xl border border-gray-200 hover:border-sky-500 hover:bg-sky-50 transition group bg-white"
-                >
-                  <div
-                    class="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center text-sky-600 group-hover:bg-sky-200 transition shrink-0"
-                  >
-                    <Package class="w-6 h-6" />
-                  </div>
-                  <div class="ml-3 text-left">
-                    <p class="font-bold text-slate-900 text-sm">Giao hàng</p>
-                    <p class="text-xs text-slate-500 mt-0.5">Nội thành siêu tốc</p>
-                  </div>
-                  <div
-                    class="ml-auto w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-sky-200 transition"
-                  >
-                    <Plus class="w-4 h-4 text-gray-400 group-hover:text-sky-700" />
-                  </div>
-                </button>
-              </RouterLink>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div
-              class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100 flex flex-col justify-center items-center text-center hover:shadow-md transition"
-            >
-              <div class="text-emerald-600 text-xs font-bold uppercase tracking-wide mb-1">
-                Tổng đơn
+                </div>
               </div>
-              <div class="text-3xl font-extrabold text-emerald-800">{{ stats.total }}</div>
-            </div>
-            <div
-              class="bg-orange-50 p-5 rounded-2xl border border-orange-100 flex flex-col justify-center items-center text-center hover:shadow-md transition"
-            >
-              <div class="text-orange-600 text-xs font-bold uppercase tracking-wide mb-1">
-                Đang xử lý
+              <div
+                class="flex justify-between items-center p-3 bg-blue-50 rounded-xl border border-blue-100"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center text-blue-700"
+                  >
+                    <Truck class="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p class="text-xs text-slate-500 font-medium">Đã hoàn thành</p>
+                    <p class="font-bold text-slate-800 text-lg">{{ stats.total }} chuyến</p>
+                  </div>
+                </div>
               </div>
-              <div class="text-3xl font-extrabold text-orange-800">{{ stats.processing }}</div>
+              <div
+                class="flex justify-between items-center p-3 bg-orange-50 rounded-xl border border-orange-100"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-full bg-orange-200 flex items-center justify-center text-orange-700"
+                  >
+                    <span class="font-bold">★</span>
+                  </div>
+                  <div>
+                    <p class="text-xs text-slate-500 font-medium">Đánh giá chung</p>
+                    <p class="font-bold text-slate-800 text-lg">4.9/5.0</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
           <div
-            class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white text-center relative overflow-hidden shadow-lg group cursor-pointer hover:shadow-emerald-200 transition-shadow"
+            class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"
           >
-            <div
-              class="relative z-10 transform group-hover:scale-105 transition-transform duration-300"
-            >
-              <p class="font-bold text-lg">Giảm 20% hôm nay!</p>
-              <p class="text-white/90 text-sm mt-1 mb-4 font-medium">
-                Dành cho đơn chuyển nhà trọn gói
+            <div class="relative z-10">
+              <h3 class="font-bold text-lg mb-2">Thưởng thi đua tuần</h3>
+              <p class="text-white/80 text-sm mb-4">
+                Hoàn thành thêm 5 chuyến xe nữa để nhận thưởng 500k!
               </p>
-              <button
-                class="bg-white text-emerald-600 px-5 py-2 rounded-lg text-xs font-extrabold uppercase tracking-wide hover:bg-emerald-50 transition shadow-md"
-              >
-                Lấy mã ngay
-              </button>
+              <div class="w-full bg-black/20 rounded-full h-2.5 mb-2">
+                <div class="bg-yellow-400 h-2.5 rounded-full" style="width: 70%"></div>
+              </div>
+              <div class="flex justify-between text-xs text-white/70 font-medium">
+                <span>15/20 chuyến</span>
+                <span>Còn 2 ngày</span>
+              </div>
+            </div>
+            <!-- Decor -->
+            <div
+              class="absolute -right-5 -bottom-5 w-32 h-32 bg-white/10 rounded-full blur-2xl"
+            ></div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div
+              class="bg-white p-5 rounded-2xl border border-gray-100 flex flex-col justify-center items-center text-center hover:shadow-md transition"
+            >
+              <div class="text-slate-500 text-xs font-bold uppercase tracking-wide mb-1">
+                Tỉ lệ nhận
+              </div>
+              <div class="text-2xl font-extrabold text-slate-800">98%</div>
             </div>
             <div
-              class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full translate-x-1/2 -translate-y-1/2 blur-xl"
-            ></div>
-            <div
-              class="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -translate-x-1/2 translate-y-1/2 blur-xl"
-            ></div>
+              class="bg-white p-5 rounded-2xl border border-gray-100 flex flex-col justify-center items-center text-center hover:shadow-md transition"
+            >
+              <div class="text-slate-500 text-xs font-bold uppercase tracking-wide mb-1">
+                Tỉ lệ hủy
+              </div>
+              <div class="text-2xl font-extrabold text-slate-800">1%</div>
+            </div>
           </div>
         </div>
       </div>

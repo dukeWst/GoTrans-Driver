@@ -24,7 +24,6 @@
     "lucide-vue-next": "^0.561.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.25",
-    "vue-i18n": "^11.2.2",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import { supabase } from '@/supabase'
 import {
   Settings,
@@ -18,7 +17,6 @@ import {
 
 const router = useRouter()
 const route = useRoute()
-const { t, locale } = useI18n()
 
 const loading = ref(true)
 const savingPassword = ref(false)
@@ -47,9 +45,9 @@ const showToast = (message: string, type: 'success' | 'error' = 'success') => {
 
 // Computed labels
 const tabLabels = computed(() => ({
-  security: t('settings.tabs.security'),
-  notifications: t('settings.tabs.notifications'),
-  general: t('settings.tabs.general'),
+  security: 'Bảo mật & Mật khẩu',
+  notifications: 'Cài đặt Thông báo',
+  general: 'Tùy chọn chung',
 }))
 
 const currentTabLabel = computed(
@@ -79,7 +77,6 @@ const userSettings = ref({
   promo_notifications: false,
   email_notifications: true,
   sms_notifications: false,
-  preferred_language: 'vi',
   theme: 'light',
 })
 
@@ -123,11 +120,9 @@ const fetchUserSettings = async () => {
       promo_notifications: metadata.setting_promo_notifications ?? false,
       email_notifications: metadata.setting_email_notifications ?? true,
       sms_notifications: metadata.setting_sms_notifications ?? false,
-      preferred_language: metadata.setting_language || 'vi',
       theme: metadata.setting_theme || 'light',
     }
 
-    locale.value = userSettings.value.preferred_language
     applyTheme(userSettings.value.theme)
   } catch (error) {
     console.error('Error:', error)
@@ -197,17 +192,15 @@ const updateGeneralSettings = async () => {
         setting_promo_notifications: userSettings.value.promo_notifications,
         setting_email_notifications: userSettings.value.email_notifications,
         setting_sms_notifications: userSettings.value.sms_notifications,
-        setting_language: userSettings.value.preferred_language,
         setting_theme: userSettings.value.theme,
       },
     })
 
     if (error) throw error
 
-    locale.value = userSettings.value.preferred_language
     applyTheme(userSettings.value.theme)
 
-    showToast(t('settings.general.saving').replace('...', '') + ' thành công!', 'success')
+    showToast('Đang lưu...'.replace('...', '') + ' thành công!', 'success')
   } catch (error: any) {
     showToast('Lỗi: ' + error.message, 'error')
   } finally {
@@ -249,9 +242,11 @@ const handleLogout = async () => {
     <header class="flex justify-between items-center mb-8">
       <div>
         <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <Settings class="w-6 h-6 text-emerald-600" /> {{ $t('settings.title') }}
+          <Settings class="w-6 h-6 text-emerald-600" /> Cài đặt chung
         </h2>
-        <p class="text-slate-500 dark:text-slate-400 mt-1">{{ $t('settings.subtitle') }}</p>
+        <p class="text-slate-500 dark:text-slate-400 mt-1">
+          Quản lý các tùy chọn bảo mật, thông báo và giao diện.
+        </p>
       </div>
     </header>
 
@@ -272,7 +267,7 @@ const handleLogout = async () => {
               {{ currentTabLabel }}
             </h3>
             <h3 class="hidden lg:block font-bold text-slate-800 dark:text-white">
-              {{ $t('settings.menu') }}
+              Các mục cài đặt
             </h3>
             <ChevronDown
               class="w-5 h-5 text-slate-500 dark:text-slate-400 lg:hidden transition-transform duration-200"
@@ -296,9 +291,7 @@ const handleLogout = async () => {
               class="p-4 cursor-pointer transition flex items-center gap-3 border-l-4"
             >
               <div class="text-orange-600"><Lock class="w-5 h-5" /></div>
-              <span class="font-medium text-slate-700 dark:text-slate-200">{{
-                $t('settings.tabs.security')
-              }}</span>
+              <span class="font-medium text-slate-700 dark:text-slate-200">Bảo mật & Mật khẩu</span>
             </div>
             <div
               @click="setActiveTab('notifications')"
@@ -311,9 +304,7 @@ const handleLogout = async () => {
               class="p-4 cursor-pointer transition flex items-center gap-3 border-l-4"
             >
               <div class="text-blue-600"><Bell class="w-5 h-5" /></div>
-              <span class="font-medium text-slate-700 dark:text-slate-200">{{
-                $t('settings.tabs.notifications')
-              }}</span>
+              <span class="font-medium text-slate-700 dark:text-slate-200">Cài đặt Thông báo</span>
             </div>
             <div
               @click="setActiveTab('general')"
@@ -325,9 +316,7 @@ const handleLogout = async () => {
               class="p-4 cursor-pointer transition flex items-center gap-3 border-l-4"
             >
               <div class="text-purple-600"><Globe class="w-5 h-5" /></div>
-              <span class="font-medium text-slate-700 dark:text-slate-200">{{
-                $t('settings.tabs.general')
-              }}</span>
+              <span class="font-medium text-slate-700 dark:text-slate-200">Tùy chọn chung</span>
             </div>
           </nav>
         </div>
@@ -340,7 +329,7 @@ const handleLogout = async () => {
             class="p-4 w-full text-left hover:bg-red-50 dark:hover:bg-red-900/20 transition flex items-center gap-3 text-red-600 font-bold"
           >
             <LogOut class="w-5 h-5" />
-            <span>{{ $t('settings.logout') }}</span>
+            <span>Đăng xuất</span>
           </button>
         </div>
       </div>
@@ -354,7 +343,7 @@ const handleLogout = async () => {
               <h3
                 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6 border-b dark:border-slate-700 pb-4"
               >
-                <Lock class="w-5 h-5 text-orange-600" /> {{ $t('settings.security.title') }}
+                <Lock class="w-5 h-5 text-orange-600" /> Đổi mật khẩu
               </h3>
               <form @submit.prevent="updatePassword" class="space-y-6">
                 <div class="space-y-2">
@@ -371,26 +360,26 @@ const handleLogout = async () => {
                 </div>
 
                 <div class="space-y-2">
-                  <label class="text-sm font-medium text-slate-700 dark:text-slate-300">{{
-                    $t('settings.security.new_pass')
-                  }}</label>
+                  <label class="text-sm font-medium text-slate-700 dark:text-slate-300"
+                    >Mật khẩu mới</label
+                  >
                   <input
                     v-model="passwordForm.new_password"
                     type="password"
                     required
-                    :placeholder="$t('settings.security.placeholder')"
+                    placeholder="Ít nhất 6 ký tự"
                     class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50/50 dark:bg-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
                   />
                 </div>
                 <div class="space-y-2">
-                  <label class="text-sm font-medium text-slate-700 dark:text-slate-300">{{
-                    $t('settings.security.confirm_pass')
-                  }}</label>
+                  <label class="text-sm font-medium text-slate-700 dark:text-slate-300"
+                    >Xác nhận mật khẩu</label
+                  >
                   <input
                     v-model="passwordForm.confirm_password"
                     type="password"
                     required
-                    :placeholder="$t('settings.security.placeholder')"
+                    placeholder="Ít nhất 6 ký tự"
                     class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50/50 dark:bg-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
                   />
                 </div>
@@ -401,11 +390,7 @@ const handleLogout = async () => {
                     class="bg-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-700 transition shadow-lg shadow-orange-200 flex items-center gap-2 disabled:opacity-50"
                   >
                     <Save v-if="!savingPassword" class="w-4 h-4" />
-                    {{
-                      savingPassword
-                        ? $t('settings.general.saving')
-                        : $t('settings.security.btn_change')
-                    }}
+                    {{ savingPassword ? 'Đang lưu...' : 'Đổi mật khẩu' }}
                   </button>
                 </div>
               </form>
@@ -419,18 +404,16 @@ const handleLogout = async () => {
             <h3
               class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6 border-b dark:border-slate-700 pb-4"
             >
-              <Bell class="w-5 h-5 text-blue-600" /> {{ $t('settings.notifications.title') }}
+              <Bell class="w-5 h-5 text-blue-600" /> Cài đặt Thông báo
             </h3>
             <form @submit.prevent="updateGeneralSettings" class="space-y-4">
               <div
                 class="flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-slate-600 bg-gray-50/30 dark:bg-slate-900/30"
               >
                 <div>
-                  <p class="font-medium text-slate-800 dark:text-white">
-                    {{ $t('settings.notifications.order') }}
-                  </p>
+                  <p class="font-medium text-slate-800 dark:text-white">Cập nhật đơn hàng</p>
                   <p class="text-xs text-slate-500 dark:text-slate-400">
-                    {{ $t('settings.notifications.order_desc') }}
+                    Thông báo trạng thái đơn hàng.
                   </p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
@@ -449,12 +432,8 @@ const handleLogout = async () => {
                 class="flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-slate-600 bg-gray-50/30 dark:bg-slate-900/30"
               >
                 <div>
-                  <p class="font-medium text-slate-800 dark:text-white">
-                    {{ $t('settings.notifications.promo') }}
-                  </p>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">
-                    {{ $t('settings.notifications.promo_desc') }}
-                  </p>
+                  <p class="font-medium text-slate-800 dark:text-white">Khuyến mãi</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Nhận thông tin ưu đãi.</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                   <input
@@ -472,12 +451,8 @@ const handleLogout = async () => {
                 class="flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-slate-600 bg-gray-50/30 dark:bg-slate-900/30"
               >
                 <div>
-                  <p class="font-medium text-slate-800 dark:text-white">
-                    {{ $t('settings.notifications.email') }}
-                  </p>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">
-                    {{ $t('settings.notifications.email_desc') }}
-                  </p>
+                  <p class="font-medium text-slate-800 dark:text-white">Email</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Nhận hóa đơn qua email.</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                   <input
@@ -498,9 +473,7 @@ const handleLogout = async () => {
                   class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 flex items-center gap-2 disabled:opacity-50"
                 >
                   <Save v-if="!savingSettings" class="w-4 h-4" />
-                  {{
-                    savingSettings ? $t('settings.general.saving') : $t('settings.general.btn_save')
-                  }}
+                  {{ savingSettings ? 'Đang lưu...' : 'Lưu cài đặt' }}
                 </button>
               </div>
             </form>
@@ -513,34 +486,21 @@ const handleLogout = async () => {
               <h3
                 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6 border-b dark:border-slate-700 pb-4"
               >
-                <Globe class="w-5 h-5 text-purple-600" /> {{ $t('settings.general.title') }}
+                <Globe class="w-5 h-5 text-purple-600" /> Tùy chọn chung
               </h3>
               <form @submit.prevent="updateGeneralSettings" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-300">{{
-                      $t('settings.general.language')
-                    }}</label>
-                    <select
-                      v-model="userSettings.preferred_language"
-                      class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50/50 dark:bg-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
-                    >
-                      <option value="vi">Tiếng Việt</option>
-                      <option value="en">English</option>
-                    </select>
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-sm font-medium text-slate-700 dark:text-slate-300">{{
-                      $t('settings.general.theme')
-                    }}</label>
-                    <select
-                      v-model="userSettings.theme"
-                      class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50/50 dark:bg-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
-                    >
-                      <option value="light">{{ $t('settings.general.light') }}</option>
-                      <option value="dark">{{ $t('settings.general.dark') }}</option>
-                    </select>
-                  </div>
+                <!-- Removed Language Selection -->
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-slate-700 dark:text-slate-300"
+                    >Giao diện</label
+                  >
+                  <select
+                    v-model="userSettings.theme"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50/50 dark:bg-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+                  >
+                    <option value="light">Sáng (Mặc định)</option>
+                    <option value="dark">Tối</option>
+                  </select>
                 </div>
                 <div class="pt-4 flex justify-end">
                   <button
@@ -549,11 +509,7 @@ const handleLogout = async () => {
                     class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 flex items-center gap-2 disabled:opacity-50"
                   >
                     <Save v-if="!savingSettings" class="w-4 h-4" />
-                    {{
-                      savingSettings
-                        ? $t('settings.general.saving')
-                        : $t('settings.general.btn_save')
-                    }}
+                    {{ savingSettings ? 'Đang lưu...' : 'Lưu cài đặt' }}
                   </button>
                 </div>
               </form>
@@ -565,15 +521,15 @@ const handleLogout = async () => {
               <h3
                 class="text-xl font-bold text-red-700 dark:text-red-500 flex items-center gap-2 mb-4"
               >
-                <Trash2 class="w-5 h-5" /> {{ $t('settings.danger.title') }}
+                <Trash2 class="w-5 h-5" /> Vùng nguy hiểm
               </h3>
               <p class="text-sm text-red-600 dark:text-red-400 mb-4">
-                {{ $t('settings.danger.desc') }}
+                Thao tác này sẽ xóa vĩnh viễn tài khoản của bạn và không thể hoàn tác.
               </p>
               <button
                 class="bg-red-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-red-700 transition shadow-md shadow-red-200"
               >
-                {{ $t('settings.danger.btn_delete') }}
+                Xóa vĩnh viễn tài khoản
               </button>
             </div>
           </div>
