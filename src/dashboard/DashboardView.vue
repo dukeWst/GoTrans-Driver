@@ -67,7 +67,6 @@ const getStatusColor = (status: string) => {
 
 // --- FETCH DATA ---
 const fetchDashboardData = async () => {
-  // Lưu ý: Có thể bỏ loading = true ở đây nếu muốn update ngầm không hiện spinner
   // loading.value = true
 
   try {
@@ -80,10 +79,12 @@ const fetchDashboardData = async () => {
     }
     user.value = session.user
 
+    // LOGIC MỚI: Lấy tất cả các đơn hàng đang "processing" (Chờ tài xế)
+    // Thay vì get theo user_id (Lịch sử cá nhân), ta get đơn có status = processing
     const { data, error } = await supabase
       .from('orders')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('status', 'processing') // Lấy đơn đang chờ
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -91,21 +92,20 @@ const fetchDashboardData = async () => {
     if (data) {
       orders.value = data
 
-      // 1. Active Order (Đơn đang xử lý gần nhất)
-      const foundActive = data.find(
-        (o: any) => o.status === 'processing' || o.status === 'shipping',
-      )
+      // 1. New Order (Đơn mới nhất) -> Có thể hiển thị nổi bật
+      // Tạm thời lấy đơn đầu tiên làm "Active Order" giả lập để demo UI
+      const foundActive = data[0]
 
       if (foundActive) {
         activeOrder.value = {
           id: foundActive.order_code || foundActive.id.slice(0, 8).toUpperCase(),
-          statusLabel: getStatusLabel(foundActive.status),
+          statusLabel: 'Chờ nhận đơn', // Label custom cho driver
           status: foundActive.status,
-          driver: foundActive.driver_name || 'Đang điều phối',
-          vehicle: foundActive.vehicle_info || 'Xe tiêu chuẩn',
+          driver: 'Chưa có',
+          vehicle: 'Xe tiêu chuẩn', // Cần mapping lại nếu có field này
           from: foundActive.pickup_address,
           to: foundActive.dropoff_address,
-          progress: getProgress(foundActive.status),
+          progress: 10, // Mới tạo thì progress thấp
           serviceType: ['standard', 'express'].includes(foundActive.service_type)
             ? 'delivery'
             : 'moving',
@@ -114,8 +114,9 @@ const fetchDashboardData = async () => {
         activeOrder.value = null
       }
 
-      // 2. Recent Orders
-      recentOrders.value = data.slice(0, 5).map((item: any) => ({
+      // 2. Available Orders List (Danh sách đơn chờ)
+      // Hiển thị ở bảng bên dưới
+      recentOrders.value = data.map((item: any) => ({
         id: item.order_code || item.id.slice(0, 8).toUpperCase(),
         date: new Date(item.created_at).toLocaleDateString('vi-VN'),
         type: ['standard', 'express', 'delivery'].includes(item.service_type)
@@ -123,13 +124,13 @@ const fetchDashboardData = async () => {
           : 'Chuyển nhà',
         price: item.total_price || 0,
         status: item.status,
-        statusLabel: getStatusLabel(item.status),
+        statusLabel: 'Chờ tài xế',
       }))
 
       // 3. Stats
       stats.value = {
-        total: data.length,
-        processing: data.filter((o: any) => o.status === 'processing').length,
+        total: data.length, // Tổng đơn đang chờ
+        processing: data.length,
       }
     }
   } catch (err) {
@@ -276,7 +277,7 @@ onUnmounted(() => {
                 <button
                   class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-lg font-bold text-sm transition shadow-lg shadow-emerald-900/50"
                 >
-                  Gọi khách
+                  Xác nhận đơn
                 </button>
                 <button
                   class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg font-bold text-sm transition"
@@ -297,7 +298,7 @@ onUnmounted(() => {
             </div>
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">Chưa có đơn hàng mới</h3>
             <p class="text-slate-500 dark:text-slate-400 mb-6 max-w-xs mx-auto">
-              Hiện tại chưa có yêu cầu vận chuyển nào gần bạn. Hãy giữ ứng dụng mở để nhận đơn.
+              Hiện tại khu vực xung quanh chưa có đơn hàng nào. Hệ thống sẽ tự động cập nhật khi có đơn mới.
             </p>
           </div>
 
@@ -307,7 +308,7 @@ onUnmounted(() => {
           >
             <div class="flex justify-between items-center mb-6">
               <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Clock class="w-5 h-5 text-emerald-600" /> Lịch sử chuyến đi
+                <Clock class="w-5 h-5 text-emerald-600" /> Đơn hàng chờ nhận
               </h3>
               <RouterLink
                 to="/dashboard/order-list"

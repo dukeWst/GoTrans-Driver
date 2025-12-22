@@ -174,7 +174,8 @@ const getOrders = async () => {
     const { data, error } = await supabase
       .from('orders')
       .select('*')
-      .eq('user_id', user.id)
+      // .eq('user_id', user.id) // CŨ: Lấy theo user_id (sai vì driver không tạo đơn)
+      .eq('status', 'processing') // MỚI: Lấy đơn đang chờ
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -330,10 +331,9 @@ const closeDetails = () => {
       <div class="flex gap-2 min-w-max">
         <button
           v-for="tab in [
-            { id: 'all', label: 'Tất cả' },
-            { id: 'processing', label: 'Đang thực hiện' },
-            { id: 'completed', label: 'Hoàn tất' },
-            { id: 'cancelled', label: 'Đã hủy' },
+            { id: 'all', label: 'Tất cả đơn chờ' }, 
+            { id: 'processing', label: 'Đang chờ' },
+            // { id: 'completed', label: 'Lịch sử' }, // Tạm ẩn
           ]"
           :key="tab.id"
           @click="activeFilter = tab.id"
