@@ -68,7 +68,7 @@ const handleRegister = async () => {
     const { error: apiError } = await supabase.auth.signUp({
       email: email.value,
       password: password.value,
-      options: { data: { full_name: fullName.value } },
+      options: { data: { full_name: fullName.value, role: 'driver' } },
     })
 
     if (apiError) throw apiError

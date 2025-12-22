@@ -8,7 +8,7 @@
           class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-emerald-900 to-slate-900 opacity-90"
         ></div>
         <div class="relative z-10 container mx-auto px-6">
-          <h1 class="text-4xl font-bold text-white mb-2">Liên hệ với chúng tôi</h1>
+          <h1 class="text-4xl font-bold text-white mb-2">Hỗ trợ Đối tác Tài xế</h1>
           <p class="text-slate-300">Chúng tôi luôn sẵn sàng lắng nghe bạn 24/7</p>
         </div>
       </section>
@@ -27,7 +27,7 @@
                     <MapPin class="w-5 h-5" />
                   </div>
                   <div>
-                    <p class="font-bold text-slate-900 text-sm">Văn phòng chính</p>
+                    <p class="font-bold text-slate-900 text-sm">Trung tâm Hỗ trợ Đối tác</p>
                     <p class="text-slate-600 text-sm mt-1">
                       123 Đường Nguyễn Trãi, Thanh Xuân, Hà Nội
                     </p>
@@ -77,7 +77,7 @@
             <div class="bg-white p-8 lg:p-10 rounded-3xl shadow-xl border-t-4 border-emerald-500">
               <h3 class="text-2xl font-bold text-slate-900 mb-2">Gửi yêu cầu tư vấn</h3>
               <p class="text-slate-500 mb-8 text-sm">
-                Điền thông tin bên dưới, nhân viên sẽ gọi lại sau 5 phút.
+                Điền thông tin bên dưới, nhân viên hỗ trợ sẽ liên hệ lại sớm nhất.
               </p>
 
               <form @submit.prevent="submitForm" class="space-y-6">
@@ -101,13 +101,14 @@
                 </div>
 
                 <div class="space-y-2">
-                  <label class="text-sm font-semibold text-slate-700">Loại dịch vụ quan tâm</label>
+                  <label class="text-sm font-semibold text-slate-700">Vấn đề cần hỗ trợ</label>
                   <select
                     class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition bg-slate-50 focus:bg-white text-slate-600"
                   >
-                    <option>Chuyển nhà trọn gói</option>
-                    <option>Chuyển văn phòng</option>
-                    <option>Thuê xe tải</option>
+                    <option>Đăng ký tài khoản tài xế</option>
+                    <option>Hỗ trợ kỹ thuật ứng dụng</option>
+                    <option>Vấn đề ví / thanh toán</option>
+                    <option>Báo cáo sự cố chuyến đi</option>
                     <option>Khác</option>
                   </select>
                 </div>
@@ -117,7 +118,7 @@
                   <textarea
                     rows="4"
                     class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition bg-slate-50 focus:bg-white"
-                    placeholder="Ví dụ: Tôi cần chuyển nhà từ quận 1 sang quận 7 vào ngày..."
+                    placeholder="Mô tả chi tiết vấn đề bạn đang gặp phải..."
                   ></textarea>
                 </div>
 

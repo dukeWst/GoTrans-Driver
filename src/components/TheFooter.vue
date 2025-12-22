@@ -12,12 +12,12 @@
         </div>
 
         <div>
-          <h3 class="font-bold text-lg mb-4 text-emerald-400">Dịch vụ</h3>
+          <h3 class="font-bold text-lg mb-4 text-emerald-400">Dành cho Tài xế</h3>
           <ul class="space-y-3 text-sm text-slate-300">
-            <li><a href="#" class="hover:text-white transition">Chuyển nhà trọn gói</a></li>
-            <li><a href="#" class="hover:text-white transition">Chuyển văn phòng</a></li>
-            <li><a href="#" class="hover:text-white transition">Taxi tải chở hàng</a></li>
-            <li><a href="#" class="hover:text-white transition">Hoàn trả mặt bằng</a></li>
+            <li><a href="#" class="hover:text-white transition">Đăng ký đối tác</a></li>
+            <li><a href="#" class="hover:text-white transition">Quyền lợi tài xế</a></li>
+            <li><a href="#" class="hover:text-white transition">Hướng dẫn sử dụng</a></li>
+            <li><a href="#" class="hover:text-white transition">Cộng đồng tài xế</a></li>
           </ul>
         </div>
 

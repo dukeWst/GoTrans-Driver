@@ -70,12 +70,20 @@ const login = async () => {
     }
 
     // 2. Gọi API Login
-    const { error: loginError } = await supabase.auth.signInWithPassword({
+    const { data, error: loginError } = await supabase.auth.signInWithPassword({
       email: email.value,
       password: password.value,
     })
 
     if (loginError) throw loginError
+
+    // 3. Kiểm tra Role ngay lập tức
+    const role = data.user.user_metadata.role
+    if (role !== 'driver') {
+      await supabase.auth.signOut()
+      // Ném lỗi giả giống như sai mật khẩu
+      throw new Error('Invalid login credentials')
+    }
 
     router.push('/dashboard')
   } catch (err: any) {

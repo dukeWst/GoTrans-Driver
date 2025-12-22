@@ -108,16 +108,33 @@ router.beforeEach(async (to, _from, next) => {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // 1. Nếu route yêu cầu đăng nhập mà chưa có session -> Chuyển về login
-  if (to.matched.some((record) => record.meta.requiresAuth) && !session) {
-    next('/login')
-    return
+  const role = session?.user?.user_metadata?.role
+
+  // 1. Nếu route yêu cầu đăng nhập
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    if (!session) {
+      next('/login')
+      return
+    }
+
+    // Kiểm tra role: Nếu không phải driver -> Chặn
+    if (role !== 'driver') {
+      await supabase.auth.signOut()
+      next('/login')
+      return
+    }
   }
 
-  // 2. Nếu route dành cho khách (guestOnly) mà đã có session -> Chuyển vào dashboard
+  // 2. Nếu route dành cho khách (guestOnly) mà đã có session
   if (to.matched.some((record) => record.meta.guestOnly) && session) {
-    next('/dashboard')
-    return
+    // Chỉ chuyển vào dashboard nếu đúng role driver
+    if (role === 'driver') {
+      next('/dashboard')
+      return
+    } else {
+      // Role sai -> Logout
+      await supabase.auth.signOut()
+    }
   }
 
   next()

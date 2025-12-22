@@ -22,7 +22,7 @@
           Trang chủ
         </RouterLink>
 
-        <div class="relative group" ref="dropdownRef">
+        <div v-if="session" class="relative group" ref="dropdownRef">
           <button
             @click="toggleModal"
             class="flex items-center gap-1 hover:text-emerald-600 transition-colors py-2"
