@@ -88,23 +88,27 @@ const getHouseTypeLabel = (type: string) => {
   }
 }
 
-// Logic Confirm (Xác nhận đơn)
+// Logic Confirm (Xác nhận đơn) & Complete (Hoàn thành đơn)
 const confirmOrder = async () => {
   if (!props.order) return
   isConfirming.value = true
+  
+  const newStatus = props.order.status === 'processing' ? 'shipping' : 'completed'
+  const successMsg = props.order.status === 'processing' ? 'Đã nhận đơn thành công!' : 'Đã hoàn thành đơn hàng!'
+
   try {
     // const { data: { user } } = await supabase.auth.getUser()
     const { error } = await supabase
       .from('orders')
       .update({ 
-        status: 'shipping',
+        status: newStatus,
         // driver_id: user?.id, // Uncomment if you have this column
        }) 
       .eq('id', props.order.id)
 
     if (error) throw error
 
-    showToast('Đã nhận đơn thành công!', 'success')
+    showToast(successMsg, 'success')
     emit('update') // Notify parent to refresh list
     emit('close')
   } catch (err: any) {
@@ -300,6 +304,13 @@ const showToast = (msg: string, type: 'success' | 'error') => {
          <!-- Nút Hủy đơn (Chỉ hiện khi ĐÃ nhận đơn - shipping) -->
         <button v-if="order.status === 'shipping'" @click="showCancelConfirm = true" class="px-6 py-2.5 bg-red-50 border border-red-200 text-red-600 rounded-xl font-bold hover:bg-red-100 transition">
           Hủy đơn hàng
+        </button>
+
+         <!-- Nút Hoàn thành đơn (Chỉ hiện khi ĐÃ nhận đơn - shipping) -->
+        <button v-if="order.status === 'shipping'" @click="confirmOrder" :disabled="isConfirming" class="px-6 py-2.5 bg-emerald-600 border border-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition flex items-center gap-2">
+            <span v-if="isConfirming" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+             <CheckCircle class="w-4 h-4" v-else />
+            {{ isConfirming ? 'Đang xử lý...' : 'Hoàn thành' }}
         </button>
       </div>
 

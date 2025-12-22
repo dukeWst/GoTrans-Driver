@@ -2,7 +2,7 @@
 import { ref, onMounted, onActivated, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/supabase'
-import { Package, Truck, ChevronRight, Clock } from 'lucide-vue-next'
+import { Package, Truck, ChevronRight, Clock, CheckCircle } from 'lucide-vue-next'
 import OrderDetailModal from '@/components/OrderDetailModal.vue'
 
 import type { RealtimeChannel, User } from '@supabase/supabase-js'
@@ -178,7 +178,7 @@ const fetchDashboardData = async () => {
       // Driver cần thấy cả processing (để nhận) và shipping (để làm).
       // Tạm thời lấy cả 2 hoặc fetch hết rồi filter client.
       // Dùng .in() cho status
-      .in('status', ['processing', 'shipping']) 
+      .in('status', ['processing', 'shipping', 'completed', 'cancelled']) 
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -194,7 +194,8 @@ const fetchDashboardData = async () => {
           return 0
       })
 
-      const foundActive = sorted[0]
+      // Filter: Active order chỉ lấy shipping hoặc processing. Completed/cancelled chỉ hiện ở Recent Activity.
+      const foundActive = sorted.find((order: any) => ['processing', 'shipping'].includes(order.status))
 
       if (foundActive) {
         activeOrder.value = {
@@ -276,11 +277,7 @@ const openActiveOrderDetails = () => {
     }
 }
 
-const openContactModal = () => {
-    if (prepareModalData()) {
-        showContactModal.value = true
-    }
-}
+
 
 // Logic Confirm
 const confirmActiveOrder = async () => {
@@ -289,20 +286,42 @@ const confirmActiveOrder = async () => {
     if (!active) return
     const raw = orders.value.find(o => (o.order_code === active.id) || (o.id.slice(0,8).toUpperCase() === active.id))
     if (!raw) return
-
-    isConfirming.value = true
-    try {
-        const { error } = await supabase
-            .from('orders')
-            .update({ status: 'shipping' })
-            .eq('id', raw.id)
-        
-        if (error) throw error
-        await fetchDashboardData()
-    } catch (e) {
-        console.error(e)
-    } finally {
-        isConfirming.value = false
+    
+    // Nếu status là processing -> Confirm
+    if (active.status === 'processing') {
+      isConfirming.value = true
+      try {
+          const { error } = await supabase
+              .from('orders')
+              .update({ status: 'shipping' })
+              .eq('id', raw.id)
+          
+          if (error) throw error
+          await fetchDashboardData()
+      } catch (e) {
+          console.error(e)
+      } finally {
+          isConfirming.value = false
+      }
+    } 
+    // Nếu status là shipping -> Complete
+    else if (active.status === 'shipping') {
+       isConfirming.value = true
+       try {
+          const { error } = await supabase
+              .from('orders')
+              .update({ status: 'completed' })
+              .eq('id', raw.id)
+          
+          if (error) throw error
+          // Sau khi hoàn thành, order sẽ mất khỏi Active (vì logic sort/filter của ta).
+          // Active order sẽ chuyển sang đơn shipping tiếp theo hoặc null.
+          await fetchDashboardData()
+      } catch (e) {
+          console.error(e)
+      } finally {
+          isConfirming.value = false
+      }
     }
 }
 
@@ -450,10 +469,13 @@ onUnmounted(() => {
                 </button>
                 <button
                   v-if="activeOrder.status === 'shipping'"
-                  @click="openContactModal"
-                  class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg font-bold text-sm transition shadow-lg shadow-blue-900/50 flex justify-center items-center gap-2"
+                  @click="confirmActiveOrder"
+                  :disabled="isConfirming"
+                  class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-lg font-bold text-sm transition shadow-lg shadow-emerald-900/50 flex justify-center items-center gap-2"
                 >
-                  <Phone class="w-4 h-4" /> Liên hệ
+                  <span v-if="isConfirming" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  <CheckCircle class="w-4 h-4" v-else /> 
+                  {{ isConfirming ? 'Đang xử lý...' : 'Hoàn thành đơn' }}
                 </button>
 
                 <button

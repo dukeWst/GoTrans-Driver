@@ -28,6 +28,9 @@ interface RawOrder {
   package_type: string
   note: string
   payment_method: string
+  // Thêm các trường này để tránh lỗi nếu DB trả về
+  user_id?: string 
+  driver_id?: string
 }
 
 // ... existing code ...
@@ -60,7 +63,6 @@ interface Order {
 
 // --- 2. QUẢN LÝ TRẠNG THÁI (STATE) ---
 const loading = ref(false)
-const activeFilter = ref('all')
 const searchQuery = ref('')
 const orders = ref<Order[]>([])
 const selectedOrder = ref<Order | null>(null)
@@ -149,7 +151,7 @@ const getOrders = async () => {
       .from('orders')
       .select('*')
       // .eq('user_id', user.id) // CŨ: Lấy theo user_id (sai vì driver không tạo đơn)
-      .eq('status', 'processing') // MỚI: Lấy đơn đang chờ
+      .in('status', ['processing', 'shipping', 'completed', 'cancelled']) // Lấy tất cả để hiển thị list và history
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -196,7 +198,44 @@ const getOrders = async () => {
   }
 }
 
-// --- 5. LOGIC (CANCEL ĐÃ CHUYỂN VÀO MODAL) --- 
+// --- 5. LOGIC ACTIONS --- 
+const isActionLoading = ref(false)
+
+const confirmOrderQuick = async (order: Order) => {
+    isActionLoading.value = true
+    const newStatus = order.status === 'processing' ? 'shipping' : 'completed'
+    try {
+        const { error } = await supabase
+            .from('orders')
+            .update({ status: newStatus })
+            .eq('id', order.id)
+        
+        if (error) throw error
+        getOrders() // Reload
+    } catch (e) {
+        console.error(e)
+    } finally {
+        isActionLoading.value = false
+    }
+}
+
+const cancelOrderQuick = async (order: Order) => {
+    if (!confirm('Bạn có chắc muốn hủy đơn hàng này không?')) return
+    isActionLoading.value = true
+    try {
+        const { error } = await supabase
+            .from('orders')
+            .update({ status: 'cancelled' })
+            .eq('id', order.id)
+        
+        if (error) throw error
+        getOrders()
+    } catch (e) {
+        console.error(e)
+    } finally {
+        isActionLoading.value = false
+    }
+}
 
 const clearSelection = () => {
     selectedOrder.value = null
@@ -229,16 +268,56 @@ onUnmounted(() => {
   if (realtimeChannel) supabase.removeChannel(realtimeChannel)
 })
 
-// --- 7. LOGIC LỌC ---
+// --- TABS & FILTER ---
+const activeTab = ref('all')
+
+const tabs = computed(() => {
+    const all = orders.value.length
+    const processing = orders.value.filter(o => o.status === 'processing').length
+    const shipping = orders.value.filter(o => o.status === 'shipping').length
+    const completed = orders.value.filter(o => o.status === 'completed').length
+    const cancelled = orders.value.filter(o => o.status === 'cancelled').length
+
+    return [
+        { id: 'all', label: `Tất cả (${all})` },
+        { id: 'processing', label: `Chờ xác nhận (${processing})` },
+        { id: 'shipping', label: `Đang thực hiện (${shipping})` },
+        { id: 'completed', label: `Đã hoàn thành (${completed})` },
+        { id: 'cancelled', label: `Đã hủy (${cancelled})` },
+    ]
+})
+
 const filteredOrders = computed(() => {
-  return orders.value.filter((order) => {
-    const statusMatch = activeFilter.value === 'all' || order.status === activeFilter.value
-    const searchLower = searchQuery.value.toLowerCase()
+  let filteredByTab = []
+  
+  switch (activeTab.value) {
+    case 'all':
+      filteredByTab = orders.value
+      break
+    case 'processing':
+      filteredByTab = orders.value.filter(o => o.status === 'processing')
+      break
+    case 'shipping':
+      filteredByTab = orders.value.filter(o => o.status === 'shipping')
+      break
+    case 'completed':
+      filteredByTab = orders.value.filter(o => o.status === 'completed')
+      break
+    case 'cancelled':
+      filteredByTab = orders.value.filter(o => o.status === 'cancelled')
+      break
+    default:
+      filteredByTab = orders.value
+  }
+
+  // Now apply the search filter to the tab-filtered orders
+  const searchLower = searchQuery.value.toLowerCase()
+  return filteredByTab.filter((order) => {
     const searchMatch =
       order.displayId.toLowerCase().includes(searchLower) ||
       order.from.toLowerCase().includes(searchLower) ||
       order.to.toLowerCase().includes(searchLower)
-    return statusMatch && searchMatch
+    return searchMatch
   })
 })
 
@@ -278,22 +357,17 @@ const closeDetails = () => {
     <div class="mb-6 overflow-x-auto pb-2 scrollbar-hide">
       <div class="flex gap-2 min-w-max">
         <button
-          v-for="tab in [
-            { id: 'all', label: 'Tất cả đơn chờ' }, 
-            { id: 'processing', label: 'Đang chờ' },
-            // { id: 'completed', label: 'Lịch sử' }, // Tạm ẩn
-          ]"
+          v-for="tab in tabs"
           :key="tab.id"
-          @click="activeFilter = tab.id"
-          class="px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-200 border"
-          :class="
-            activeFilter === tab.id
-              ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-200 dark:shadow-none'
-              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
-          "
+          @click="activeTab = tab.id"
+          class="px-5 py-2.5 rounded-xl text-sm font-bold transition-all border"
+          :class="activeTab === tab.id 
+            ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/30' 
+            : 'bg-white border-gray-200 text-slate-600 hover:bg-gray-50 hover:border-gray-300'"
         >
           {{ tab.label }}
         </button>
+
       </div>
     </div>
 
@@ -379,6 +453,7 @@ const closeDetails = () => {
           </div>
         </div>
 
+        <!-- Price and Actions -->
         <div
           class="flex items-center justify-between pt-4 mt-2 border-t border-gray-100 dark:border-slate-700"
         >
@@ -388,11 +463,38 @@ const closeDetails = () => {
             </div>
             <div class="flex items-center gap-1"><Clock class="w-3.5 h-3.5" /> {{ item.time }}</div>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-emerald-600">{{ formatCurrency(item.price) }}</span>
-            <ChevronRight
-              class="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform"
-            />
+          
+          <div class="flex items-center gap-3">
+             <!-- Quick Actions -->
+             <button 
+                v-if="item.status === 'processing'"
+                @click.stop="confirmOrderQuick(item)"
+                :disabled="isActionLoading"
+                class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-500 transition shadow-sm"
+             >
+                Xác nhận
+             </button>
+             <button 
+                v-if="item.status === 'shipping'"
+                @click.stop="cancelOrderQuick(item)"
+                :disabled="isActionLoading"
+                class="px-3 py-1.5 bg-red-100 text-red-600 text-xs font-bold rounded-lg hover:bg-red-200 transition border border-red-200"
+             >
+                Hủy
+             </button>
+             <button 
+                v-if="item.status === 'shipping'"
+                @click.stop="confirmOrderQuick(item)"
+                :disabled="isActionLoading"
+                class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-500 transition shadow-sm"
+             >
+                Hoàn thành
+             </button>
+
+            <div class="flex items-center gap-2 pl-2 border-l border-gray-100 dark:border-slate-700">
+                <span class="font-bold text-emerald-600">{{ formatCurrency(item.price) }}</span>
+                <ChevronRight class="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
         </div>
       </div>
