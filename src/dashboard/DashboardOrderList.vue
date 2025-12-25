@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onActivated, onUnmounted } from 'vue'
-import {
-  Package,
-  Truck,
-  Calendar,
-  Clock,
-  ChevronRight,
-  Search,
-} from 'lucide-vue-next'
+import { Package, Truck, Calendar, Clock, ChevronRight, Search } from 'lucide-vue-next'
 import { supabase } from '@/supabase'
 import OrderDetailModal from '@/components/OrderDetailModal.vue'
 
@@ -29,7 +22,7 @@ interface RawOrder {
   note: string
   payment_method: string
   // Thêm các trường này để tránh lỗi nếu DB trả về
-  user_id?: string 
+  user_id?: string
   driver_id?: string
 }
 
@@ -67,8 +60,6 @@ const searchQuery = ref('')
 const orders = ref<Order[]>([])
 const selectedOrder = ref<Order | null>(null)
 
-
-
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
 }
@@ -93,15 +84,13 @@ const getStatusLabel = (status: string) => {
     case 'processing':
       return 'Đang xác nhận' // Updated
     case 'shipping':
-        return 'Đang thực hiện' // Updated
+      return 'Đang thực hiện' // Updated
     case 'cancelled':
       return 'Đã hủy'
     default:
       return status
   }
 }
-
-
 
 // Hàm tách thông tin từ Note của Chuyển nhà
 const parseMovingNote = (note: string) => {
@@ -138,6 +127,7 @@ const parseMovingNote = (note: string) => {
 }
 
 // --- 4. LẤY DỮ LIỆU TỪ SUPABASE ---
+// --- 4. LẤY DỮ LIỆU TỪ SUPABASE ---
 const getOrders = async () => {
   if (orders.value.length === 0) loading.value = true
 
@@ -150,20 +140,31 @@ const getOrders = async () => {
     const { data, error } = await supabase
       .from('orders')
       .select('*')
-      // .eq('user_id', user.id) // CŨ: Lấy theo user_id (sai vì driver không tạo đơn)
-      .in('status', ['processing', 'shipping', 'completed', 'cancelled']) // Lấy tất cả để hiển thị list và history
+      // Query này lọc ở phía Server (Good)
+      .or(`status.eq.processing,driver_id.eq.${user.id}`)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
     if (data) {
-      orders.value = data.map((item: RawOrder) => {
+      // --- BỔ SUNG: CLIENT-SIDE HARD FILTER (Lọc cứng phía Client) ---
+      // Đây là "chốt chặn" cuối cùng. Dù Server có lỡ trả về đơn Shipping của người khác
+      // thì đoạn này cũng sẽ loại bỏ nó ngay lập tức.
+      const validOrders = data.filter((item: RawOrder) => {
+        const isProcessing = item.status === 'processing'
+        const isMine = item.driver_id === user.id
+
+        // Logic: Chỉ giữ lại đơn nếu (Đang chờ xử lý) HOẶC (Đơn đó là của tôi)
+        return isProcessing || isMine
+      })
+
+      // Map dữ liệu từ validOrders (đã lọc sạch) thay vì data gốc
+      orders.value = validOrders.map((item: RawOrder) => {
         const dateObj = new Date(item.created_at)
         const rawType = item.service_type
         const isDeliveryGroup = ['standard', 'express', 'delivery'].includes(rawType)
         const noteContent = item.note || ''
 
-        // Xử lý riêng cho moving house
         let movingDetails = undefined
         if (!isDeliveryGroup) {
           movingDetails = parseMovingNote(noteContent)
@@ -187,7 +188,7 @@ const getOrders = async () => {
           packageType: item.package_type === 'bulky' ? 'bulky' : 'standard',
           note: noteContent,
           paymentMethod: item.payment_method || 'cod',
-          movingDetails: movingDetails, // Gán data đã parse
+          movingDetails: movingDetails,
         }
       })
     }
@@ -198,53 +199,123 @@ const getOrders = async () => {
   }
 }
 
-// --- 5. LOGIC ACTIONS --- 
+// --- 5. LOGIC ACTIONS ---
 const isActionLoading = ref(false)
 
+// Trong DashboardOrderList.vue
+
+// Trong DashboardOrderList.vue
+
 const confirmOrderQuick = async (order: Order) => {
-    isActionLoading.value = true
-    const newStatus = order.status === 'processing' ? 'shipping' : 'completed'
-    try {
-        const { error } = await supabase
-            .from('orders')
-            .update({ status: newStatus })
-            .eq('id', order.id)
-        
-        if (error) throw error
-        getOrders() // Reload
-    } catch (e) {
-        console.error(e)
-    } finally {
-        isActionLoading.value = false
+  isActionLoading.value = true
+
+  // Xác định trạng thái mới
+  const newStatus = order.status === 'processing' ? 'shipping' : 'completed'
+
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user && newStatus === 'shipping') {
+      alert('Không tìm thấy thông tin tài xế. Vui lòng đăng nhập lại.')
+      return
     }
+
+    const updatePayload: any = { status: newStatus }
+
+    if (newStatus === 'shipping') {
+      updatePayload.driver_id = user?.id
+      updatePayload.driver_name = user?.user_metadata?.full_name || 'Tài xế'
+      updatePayload.driver_phone = user?.user_metadata?.phone || ''
+      updatePayload.vehicle_info = user?.user_metadata?.vehicle || 'Xe tiêu chuẩn'
+    }
+
+    // --- SỬA ĐOẠN NÀY ---
+    let query = supabase.from('orders').update(updatePayload).eq('id', order.id).select() // Quan trọng: Thêm select để biết có update thành công hay không
+
+    // LOGIC CHẶT CHẼ:
+    // Nếu đang định nhận đơn (từ processing -> shipping),
+    // BẮT BUỘC status hiện tại trong DB phải là 'processing'.
+    if (order.status === 'processing' && newStatus === 'shipping') {
+      query = query.eq('status', 'processing')
+    }
+
+    // Nếu định Hoàn thành đơn, BẮT BUỘC đơn đó phải là của mình
+    if (newStatus === 'completed') {
+      query = query.eq('driver_id', user?.id)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    // KIỂM TRA: Nếu data rỗng nghĩa là điều kiện eq sai
+    // (tức là người khác đã nhận đơn này trước đó tích tắc, status ko còn là processing nữa)
+    if (!data || data.length === 0) {
+      alert('Rất tiếc! Đơn hàng này đã được tài xế khác nhận hoặc không còn khả dụng.')
+      // Xóa đơn này khỏi list local ngay lập tức để người dùng không bấm nữa
+      orders.value = orders.value.filter((o) => o.id !== order.id)
+      return
+    }
+
+    // Nếu thành công thì reload lại
+    await getOrders()
+  } catch (e: any) {
+    console.error('Lỗi xác nhận:', e)
+    alert('Lỗi xác nhận đơn: ' + (e.message || e))
+  } finally {
+    isActionLoading.value = false
+  }
 }
 
 const cancelOrderQuick = async (order: Order) => {
-    if (!confirm('Bạn có chắc muốn hủy đơn hàng này không?')) return
-    isActionLoading.value = true
-    try {
-        const { error } = await supabase
-            .from('orders')
-            .update({ status: 'cancelled' })
-            .eq('id', order.id)
-        
-        if (error) throw error
-        getOrders()
-    } catch (e) {
-        console.error(e)
-    } finally {
-        isActionLoading.value = false
+  if (!confirm('Bạn có chắc muốn hủy đơn hàng này không?')) return
+  isActionLoading.value = true
+
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return
+
+    // --- SỬA ĐOẠN NÀY ---
+    // Chỉ update thành cancelled NẾU driver_id là của chính mình
+    // (Hoặc nếu đơn đang processing thì ai cũng hủy được?
+    // Thường thì tài xế không được hủy đơn processing nếu chưa nhận.
+    // Giả sử logic là: Đã nhận (shipping) thì mới được hủy).
+
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status: 'cancelled' })
+      .eq('id', order.id)
+      .eq('driver_id', user.id) // RÀNG BUỘC: Phải là đơn của tôi mới được hủy
+      .select()
+
+    if (error) throw error
+
+    if (!data || data.length === 0) {
+      alert('Bạn không có quyền hủy đơn hàng này (Đơn của người khác hoặc đã thay đổi trạng thái).')
+      await getOrders() // Reload lại để thấy trạng thái đúng
+      return
     }
+
+    getOrders()
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isActionLoading.value = false
+  }
 }
 
 const clearSelection = () => {
-    selectedOrder.value = null
+  selectedOrder.value = null
 }
 
 const handleOrderUpdate = () => {
-    // Reload list when modal actions (confirm/cancel) occur
-    getOrders()
-    clearSelection()
+  // Reload list when modal actions (confirm/cancel) occur
+  getOrders()
+  clearSelection()
 }
 
 // --- 6. LIFECYCLE & REALTIME ---
@@ -252,11 +323,23 @@ let realtimeChannel: any = null
 
 onMounted(() => {
   getOrders()
+
+  // Kênh realtime phải lắng nghe mọi thay đổi
   realtimeChannel = supabase
     .channel('realtime-orders')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-      getOrders()
-    })
+    .on(
+      'postgres_changes',
+      {
+        event: '*', // Lắng nghe cả INSERT, UPDATE, DELETE
+        schema: 'public',
+        table: 'orders',
+      },
+      (payload) => {
+        // Log để debug xem payload trả về gì nếu cần
+        console.log('Có thay đổi đơn hàng:', payload)
+        getOrders() // Gọi lại hàm getOrders đã sửa ở trên
+      },
+    )
     .subscribe()
 })
 
@@ -272,39 +355,39 @@ onUnmounted(() => {
 const activeTab = ref('all')
 
 const tabs = computed(() => {
-    const all = orders.value.length
-    const processing = orders.value.filter(o => o.status === 'processing').length
-    const shipping = orders.value.filter(o => o.status === 'shipping').length
-    const completed = orders.value.filter(o => o.status === 'completed').length
-    const cancelled = orders.value.filter(o => o.status === 'cancelled').length
+  const all = orders.value.length
+  const processing = orders.value.filter((o) => o.status === 'processing').length
+  const shipping = orders.value.filter((o) => o.status === 'shipping').length
+  const completed = orders.value.filter((o) => o.status === 'completed').length
+  const cancelled = orders.value.filter((o) => o.status === 'cancelled').length
 
-    return [
-        { id: 'all', label: `Tất cả (${all})` },
-        { id: 'processing', label: `Chờ xác nhận (${processing})` },
-        { id: 'shipping', label: `Đang thực hiện (${shipping})` },
-        { id: 'completed', label: `Đã hoàn thành (${completed})` },
-        { id: 'cancelled', label: `Đã hủy (${cancelled})` },
-    ]
+  return [
+    { id: 'all', label: `Tất cả (${all})` },
+    { id: 'processing', label: `Chờ xác nhận (${processing})` },
+    { id: 'shipping', label: `Đang thực hiện (${shipping})` },
+    { id: 'completed', label: `Đã hoàn thành (${completed})` },
+    { id: 'cancelled', label: `Đã hủy (${cancelled})` },
+  ]
 })
 
 const filteredOrders = computed(() => {
   let filteredByTab = []
-  
+
   switch (activeTab.value) {
     case 'all':
       filteredByTab = orders.value
       break
     case 'processing':
-      filteredByTab = orders.value.filter(o => o.status === 'processing')
+      filteredByTab = orders.value.filter((o) => o.status === 'processing')
       break
     case 'shipping':
-      filteredByTab = orders.value.filter(o => o.status === 'shipping')
+      filteredByTab = orders.value.filter((o) => o.status === 'shipping')
       break
     case 'completed':
-      filteredByTab = orders.value.filter(o => o.status === 'completed')
+      filteredByTab = orders.value.filter((o) => o.status === 'completed')
       break
     case 'cancelled':
-      filteredByTab = orders.value.filter(o => o.status === 'cancelled')
+      filteredByTab = orders.value.filter((o) => o.status === 'cancelled')
       break
     default:
       filteredByTab = orders.value
@@ -361,13 +444,14 @@ const closeDetails = () => {
           :key="tab.id"
           @click="activeTab = tab.id"
           class="px-5 py-2.5 rounded-xl text-sm font-bold transition-all border"
-          :class="activeTab === tab.id 
-            ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/30' 
-            : 'bg-white border-gray-200 text-slate-600 hover:bg-gray-50 hover:border-gray-300'"
+          :class="
+            activeTab === tab.id
+              ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/30'
+              : 'bg-white border-gray-200 text-slate-600 hover:bg-gray-50 hover:border-gray-300'
+          "
         >
           {{ tab.label }}
         </button>
-
       </div>
     </div>
 
@@ -463,52 +547,54 @@ const closeDetails = () => {
             </div>
             <div class="flex items-center gap-1"><Clock class="w-3.5 h-3.5" /> {{ item.time }}</div>
           </div>
-          
-          <div class="flex items-center gap-3">
-             <!-- Quick Actions -->
-             <button 
-                v-if="item.status === 'processing'"
-                @click.stop="confirmOrderQuick(item)"
-                :disabled="isActionLoading"
-                class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-500 transition shadow-sm"
-             >
-                Xác nhận
-             </button>
-             <button 
-                v-if="item.status === 'shipping'"
-                @click.stop="cancelOrderQuick(item)"
-                :disabled="isActionLoading"
-                class="px-3 py-1.5 bg-red-100 text-red-600 text-xs font-bold rounded-lg hover:bg-red-200 transition border border-red-200"
-             >
-                Hủy
-             </button>
-             <button 
-                v-if="item.status === 'shipping'"
-                @click.stop="confirmOrderQuick(item)"
-                :disabled="isActionLoading"
-                class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-500 transition shadow-sm"
-             >
-                Hoàn thành
-             </button>
 
-            <div class="flex items-center gap-2 pl-2 border-l border-gray-100 dark:border-slate-700">
-                <span class="font-bold text-emerald-600">{{ formatCurrency(item.price) }}</span>
-                <ChevronRight class="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+          <div class="flex items-center gap-3">
+            <!-- Quick Actions -->
+            <button
+              v-if="item.status === 'processing'"
+              @click.stop="confirmOrderQuick(item)"
+              :disabled="isActionLoading"
+              class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-500 transition shadow-sm"
+            >
+              Xác nhận
+            </button>
+            <button
+              v-if="item.status === 'shipping'"
+              @click.stop="cancelOrderQuick(item)"
+              :disabled="isActionLoading"
+              class="px-3 py-1.5 bg-red-100 text-red-600 text-xs font-bold rounded-lg hover:bg-red-200 transition border border-red-200"
+            >
+              Hủy
+            </button>
+            <button
+              v-if="item.status === 'shipping'"
+              @click.stop="confirmOrderQuick(item)"
+              :disabled="isActionLoading"
+              class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-500 transition shadow-sm"
+            >
+              Hoàn thành
+            </button>
+
+            <div
+              class="flex items-center gap-2 pl-2 border-l border-gray-100 dark:border-slate-700"
+            >
+              <span class="font-bold text-emerald-600">{{ formatCurrency(item.price) }}</span>
+              <ChevronRight
+                class="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform"
+              />
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <OrderDetailModal 
-      :isOpen="!!selectedOrder" 
-      :order="selectedOrder" 
+    <OrderDetailModal
+      :isOpen="!!selectedOrder"
+      :order="selectedOrder"
       @close="closeDetails"
       @update="handleOrderUpdate"
     />
   </main>
-
-
 </template>
 
 <style scoped>

@@ -34,6 +34,7 @@ interface RawOrder {
   package_type: string
   note: string
   payment_method: string
+  driver_id?: string // Thêm trường này
 }
 
 interface DashboardOrder {
@@ -49,8 +50,8 @@ interface DashboardOrder {
 }
 
 interface RecentOrder {
-  realId: string // ID thật dùng để query
-  id: string // ID hiển thị (ngắn gọn)
+  realId: string
+  id: string
   date: string
   type: string
   price: number
@@ -58,7 +59,6 @@ interface RecentOrder {
   statusLabel: string
 }
 
-// Reuse OrderDetail structure for modal
 interface OrderDetailForModal {
   id: string
   displayId: string
@@ -96,9 +96,19 @@ const stats = ref({
 
 // Modals & Confirm
 const isConfirming = ref(false)
+const isCancelling = ref(false) // Đã thêm biến này để tránh lỗi
 const showDetailModal = ref(false)
 const showContactModal = ref(false)
 const selectedOrderForModal = ref<OrderDetailForModal | null>(null)
+
+const isRewardClaimed = ref(false)
+
+const handleClaimReward = () => {
+  if (isRewardClaimed.value) return
+  isRewardClaimed.value = true
+  stats.value.revenue += 500000
+  localStorage.setItem('weekly_reward_claimed', 'true')
+}
 
 // --- HELPERS ---
 const formatCurrency = (value: number) => {
@@ -177,7 +187,6 @@ const getStatusColor = (status: string) => {
   }
 }
 
-// Hàm chuyển đổi từ RawOrder sang DashboardOrder (Dùng chung cho Load và Click)
 const mapOrderToDashboard = (raw: RawOrder): DashboardOrder => {
   return {
     id: raw.order_code || raw.id.slice(0, 8).toUpperCase(),
@@ -194,7 +203,6 @@ const mapOrderToDashboard = (raw: RawOrder): DashboardOrder => {
   }
 }
 
-// --- LOGIC XỬ LÝ CLICK ---
 const handleSelectOrder = (realId: string) => {
   const selectedRaw = orders.value.find((o) => o.id === realId)
   if (selectedRaw) {
@@ -202,7 +210,7 @@ const handleSelectOrder = (realId: string) => {
   }
 }
 
-// --- FETCH DATA ---
+// --- FETCH DATA (QUAN TRỌNG: LOGIC LỌC ĐƠN) ---
 const fetchDashboardData = async () => {
   try {
     const {
@@ -214,10 +222,12 @@ const fetchDashboardData = async () => {
     }
     user.value = session.user
 
+    // LOGIC MỚI: Chỉ lấy đơn đang chờ (processing) HOẶC đơn của chính tài xế này
+    // Điều này đảm bảo khi tài xế khác nhận, status đổi sang shipping, đơn sẽ biến mất khỏi máy này
     const { data, error } = await supabase
       .from('orders')
       .select('*')
-      .in('status', ['processing', 'shipping', 'completed', 'cancelled'])
+      .or(`status.eq.processing,driver_id.eq.${user.value.id}`)
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -225,14 +235,12 @@ const fetchDashboardData = async () => {
     if (data) {
       orders.value = data as RawOrder[]
 
-      // Logic cũ: Ưu tiên đơn đang chạy hoặc cần xác nhận lên đầu
       const sorted = [...data].sort((a, b) => {
         if (a.status === 'shipping' && b.status !== 'shipping') return -1
         if (b.status === 'shipping' && a.status !== 'shipping') return 1
         return 0
       })
 
-      // Nếu chưa có đơn active (lần đầu load), chọn đơn ưu tiên nhất
       if (!activeOrder.value) {
         const foundActive = sorted.find((order: any) =>
           ['processing', 'shipping'].includes(order.status),
@@ -242,9 +250,8 @@ const fetchDashboardData = async () => {
         } else {
           activeOrder.value = null
         }
-      }
-      // Nếu đã có activeOrder (do user click), giữ nguyên hoặc cập nhật lại trạng thái mới nhất từ server
-      else {
+      } else {
+        // Cập nhật lại activeOrder hiện tại nếu dữ liệu thay đổi
         const currentActiveRaw = orders.value.find(
           (o) =>
             o.order_code === activeOrder.value?.id ||
@@ -252,32 +259,31 @@ const fetchDashboardData = async () => {
         )
         if (currentActiveRaw) {
           activeOrder.value = mapOrderToDashboard(currentActiveRaw)
+        } else {
+          // Nếu đơn hàng đang chọn không còn trong danh sách (do người khác nhận mất), reset về null hoặc chọn đơn đầu tiên
+          activeOrder.value = sorted.length > 0 ? mapOrderToDashboard(sorted[0]) : null
         }
       }
 
-      // MAP DATA CHO DANH SÁCH DƯỚI (QUAN TRỌNG: Cần map đầy đủ các field)
-      recentOrders.value = data
-        .slice(0, 5) // <--- THÊM DÒNG NÀY: Cắt lấy 5 phần tử đầu tiên
-        .map((item: RawOrder) => ({
-          realId: item.id,
-          id: item.order_code || item.id.slice(0, 8).toUpperCase(),
-          date: new Date(item.created_at).toLocaleDateString('vi-VN'),
-          type: ['standard', 'express', 'delivery'].includes(item.service_type)
-            ? 'Giao hàng'
-            : 'Chuyển nhà',
-          price: item.total_price || 0,
-          status: item.status,
-          statusLabel: getStatusLabel(item.status),
-        }))
+      recentOrders.value = data.slice(0, 5).map((item: RawOrder) => ({
+        realId: item.id,
+        id: item.order_code || item.id.slice(0, 8).toUpperCase(),
+        date: new Date(item.created_at).toLocaleDateString('vi-VN'),
+        type: ['standard', 'express', 'delivery'].includes(item.service_type)
+          ? 'Giao hàng'
+          : 'Chuyển nhà',
+        price: item.total_price || 0,
+        status: item.status,
+        statusLabel: getStatusLabel(item.status),
+      }))
 
-      // Tính toán Stats
       stats.value = {
         total: data.filter((x) => x.status === 'completed').length,
         processing: data.filter((x) => x.status === 'processing').length,
         revenue:
           data
             .filter((x) => x.status === 'completed')
-            .reduce((sum, order) => sum + (order.total_price || 0), 0) * 0.8, // Giả sử nhận 80%
+            .reduce((sum, order) => sum + (order.total_price || 0), 0) * 0.8,
       }
     }
   } catch (err) {
@@ -328,6 +334,33 @@ const openActiveOrderDetails = () => {
   }
 }
 
+const cancelActiveOrder = async () => {
+  const active = activeOrder.value
+  if (!active) return
+  const raw = orders.value.find(
+    (o) => o.order_code === active.id || o.id.slice(0, 8).toUpperCase() === active.id,
+  )
+  if (!raw) return
+
+  isCancelling.value = true
+  try {
+    const { error } = await supabase.from('orders').update({ status: 'cancelled' }).eq('id', raw.id)
+    if (error) throw error
+
+    activeOrder.value = {
+      ...activeOrder.value!,
+      status: 'cancelled',
+      statusLabel: 'Đã hủy',
+      progress: 0,
+    }
+    await fetchDashboardData()
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isCancelling.value = false
+  }
+}
+
 const confirmActiveOrder = async () => {
   const active = activeOrder.value
   if (!active) return
@@ -340,21 +373,47 @@ const confirmActiveOrder = async () => {
   if (active.status === 'processing') {
     isConfirming.value = true
     try {
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser()
+      if (!currentUser) throw new Error('User not found')
+
+      const driverName =
+        currentUser?.user_metadata?.full_name || user.value?.user_metadata?.full_name || 'Tài xế'
+      const driverPhone =
+        currentUser?.user_metadata?.phone || user.value?.user_metadata?.phone || 'N/A'
+      const vehicleInfo =
+        currentUser?.user_metadata?.vehicle || user.value?.user_metadata?.vehicle || 'Xe tiêu chuẩn'
+
+      // BẮT BUỘC: Phải update driver_id là ID của user hiện tại
+      // Nếu không update driver_id, lệnh fetchDashboardData (lọc theo driver_id.eq.myID) sẽ không tìm thấy đơn này nữa
       const { error } = await supabase
         .from('orders')
-        .update({ status: 'shipping' })
+        .update({
+          status: 'shipping',
+          driver_id: currentUser.id, // <--- QUAN TRỌNG
+          driver_name: driverName,
+          driver_phone: driverPhone,
+          vehicle_info: vehicleInfo,
+        })
         .eq('id', raw.id)
+
       if (error) throw error
-      // Cập nhật optimistic
+
       activeOrder.value = {
         ...activeOrder.value!,
         status: 'shipping',
         statusLabel: 'Đang thực hiện',
         progress: 80,
+        driver: driverName,
+        vehicle: vehicleInfo,
       }
       await fetchDashboardData()
     } catch (e) {
       console.error(e)
+      alert('Có lỗi xảy ra hoặc đơn hàng đã bị tài xế khác nhận trước!')
+      // Tải lại để cập nhật trạng thái mới nhất
+      await fetchDashboardData()
     } finally {
       isConfirming.value = false
     }
@@ -371,7 +430,6 @@ const confirmActiveOrder = async () => {
         .eq('id', raw.id)
       if (error) throw error
 
-      // Optimistic UI Update
       stats.value.total += 1
       stats.value.revenue += currentOrderIncome
 
@@ -391,6 +449,11 @@ let realtimeChannel: RealtimeChannel | null = null
 
 onMounted(() => {
   fetchDashboardData()
+
+  if (localStorage.getItem('weekly_reward_claimed') === 'true') {
+    isRewardClaimed.value = true
+  }
+
   realtimeChannel = supabase
     .channel('dashboard-realtime')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
@@ -693,19 +756,63 @@ onUnmounted(() => {
           </div>
 
           <div
-            class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"
+            class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden flex flex-col justify-between min-h-[200px]"
           >
             <div class="relative z-10">
-              <h3 class="font-bold text-lg mb-2">Thưởng thi đua tuần</h3>
+              <h3 class="font-bold text-lg mb-2 flex justify-between items-center">
+                Thưởng thi đua tuần
+                <span
+                  v-if="isRewardClaimed"
+                  class="text-xs bg-yellow-400 text-purple-900 px-2 py-0.5 rounded-full font-bold"
+                  >Đã nhận</span
+                >
+              </h3>
+
               <p class="text-white/80 text-sm mb-4">
-                Hoàn thành thêm 5 chuyến xe nữa để nhận thưởng 500k!
+                Hoàn thành 30 chuyến xe để nhận thưởng nóng 500.000đ!
               </p>
-              <div class="w-full bg-black/20 rounded-full h-2.5 mb-2">
-                <div class="bg-yellow-400 h-2.5 rounded-full" style="width: 70%"></div>
+
+              <div class="w-full bg-black/20 rounded-full h-3 mb-2 overflow-hidden">
+                <div
+                  class="bg-yellow-400 h-full rounded-full transition-all duration-1000 ease-out relative"
+                  :style="{ width: Math.min((stats.total / 30) * 100, 100) + '%' }"
+                >
+                  <div
+                    class="absolute top-0 right-0 bottom-0 left-0 bg-white/20 animate-pulse"
+                  ></div>
+                </div>
+              </div>
+
+              <div class="flex justify-between text-xs text-white/90 font-medium mb-4">
+                <span>{{ stats.total }}/30 chuyến</span>
+                <span v-if="stats.total < 30">Còn {{ 30 - stats.total }} chuyến</span>
+                <span v-else class="text-yellow-300 font-bold">Hoàn thành!</span>
               </div>
             </div>
+
+            <div class="relative z-10 mt-auto" v-if="stats.total >= 30">
+              <button
+                @click="handleClaimReward"
+                :disabled="isRewardClaimed"
+                class="w-full font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg"
+                :class="
+                  isRewardClaimed
+                    ? 'bg-white/20 text-white/60 cursor-not-allowed'
+                    : 'bg-yellow-400 text-purple-900 hover:bg-yellow-300 hover:scale-105 hover:shadow-yellow-400/50'
+                "
+              >
+                <span v-if="isRewardClaimed">
+                  <CheckCircle class="w-4 h-4 inline mr-1" /> Đã nhận thưởng
+                </span>
+                <span v-else> 🎁 Nhận thưởng ngay </span>
+              </button>
+            </div>
+
             <div
               class="absolute -right-5 -bottom-5 w-32 h-32 bg-white/10 rounded-full blur-2xl"
+            ></div>
+            <div
+              class="absolute top-10 right-10 w-10 h-10 bg-purple-500/30 rounded-full blur-xl animate-pulse"
             ></div>
           </div>
         </div>
