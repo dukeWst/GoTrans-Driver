@@ -54,7 +54,7 @@
                   </div>
                   <div>
                     <p class="font-bold text-slate-900 text-sm">Email</p>
-                    <p class="text-slate-600 text-sm mt-1">support@gotrans.vn</p>
+                    <p class="text-slate-600 text-sm mt-1">duke.nd.wst@gmail.comn</p>
                   </div>
                 </div>
               </div>

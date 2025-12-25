@@ -44,7 +44,7 @@
             </li>
             <li class="flex items-center gap-3">
               <Mail />
-              <span>support@gotrans.vn</span>
+              <span>duke.nd.wst@gmail.com</span>
             </li>
           </ul>
         </div>

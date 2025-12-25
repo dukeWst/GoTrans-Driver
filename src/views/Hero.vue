@@ -1,6 +1,6 @@
 <template>
   <section
-    class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-800 via-slate-900 to-black shadow-2xl text-white"
+    class="relative overflow-hidden rounded-b-4xl py-12 bg-gradient-to-br from-slate-800 via-slate-900 to-black shadow-2xl text-white"
   >
     <!-- Background Effects -->
     <div

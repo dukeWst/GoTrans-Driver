@@ -2,7 +2,7 @@
   <div class="min-h-screen flex flex-col bg-gray-50 text-slate-800">
     <TheNavbar />
 
-    <main class="flex-1 container mx-auto px-6 py-12 space-y-20">
+    <main class="flex-1 container mx-auto px-6 space-y-20">
       <Hero />
       <div class="">
         <Features />
